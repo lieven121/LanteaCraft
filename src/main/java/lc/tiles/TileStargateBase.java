@@ -324,13 +324,13 @@ public class TileStargateBase extends LCMultiblockTile implements IBlockSkinnabl
 			}
 			break;
 		case DISCONNECT:
-			clientAnimationQueue.push(new ChevronReleaseAnimation(9, true));
-			clientAnimationQueue.push(new RingSpinAnimation(stargateSpinTime, 0.0d, 0.0d, true));
+			clientAnimationQueue.add(new ChevronReleaseAnimation(9, true));
+			clientAnimationQueue.add(new RingSpinAnimation(stargateSpinTime, 0.0d, 0.0d, true));
 			clientEngagedGlyphs.clear();
 			break;
 		case DISENGAGE:
 			if (clientEngagedGlyphs.size() > 0) {
-				clientAnimationQueue.push(new ChevronMoveAnimation(stargateChevronMoveTime,
+				clientAnimationQueue.add(new ChevronMoveAnimation(stargateChevronMoveTime,
 						clientChevronQueue[clientEngagedGlyphs.size() - 1], 0.0d, 0.0d, true));
 				clientEngagedGlyphs.remove(clientEngagedGlyphs.size() - 1);
 			}
@@ -345,17 +345,17 @@ public class TileStargateBase extends LCMultiblockTile implements IBlockSkinnabl
 			int symbolIndex = StargateCharsetHelper.singleton().index((char) clientCurrentGlyph);
 			double symbolRotation = symbolIndex * (360.0 / 38.0d);
 			double aangle = MathUtils.normaliseAngle(symbolRotation);
-			clientAnimationQueue.push(new RingSpinAnimation(stargateSpinTime, 0.0d, aangle, true));
+			clientAnimationQueue.add(new RingSpinAnimation(stargateSpinTime, 0.0d, aangle, true));
 			for (int i = 0; i < clientEngagedGlyphs.size() - 1; i++) {
 				tileRenderState().set("chevron-dist-" + clientChevronQueue[i], 1.0d / 8.0d);
 				tileRenderState().set("chevron-light-" + clientChevronQueue[i], 0.5d);
 			}
 			break;
 		case CLOSEIRIS:
-			clientAnimationQueue.push(new IrisMoveAnimation(stargateIrisSpeed, 1.0f));
+			clientAnimationQueue.add(new IrisMoveAnimation(stargateIrisSpeed, 1.0f));
 			break;
 		case OPENIRIS:
-			clientAnimationQueue.push(new IrisMoveAnimation(stargateIrisSpeed, 0.0f));
+			clientAnimationQueue.add(new IrisMoveAnimation(stargateIrisSpeed, 0.0f));
 			break;
 		default:
 			break;
