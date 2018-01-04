@@ -4,10 +4,13 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import net.minecraft.nbt.NBTTagCompound;
+import lc.LanteaCraft;
 import lc.api.jit.ASMTag;
 import lc.api.jit.Tag;
 import lc.common.LCLog;
 import lc.common.impl.drivers.OpenComputersDriverManager.IOCManagedEnvPerp;
+import lc.common.resource.ResourceAccess;
+import li.cil.oc.api.FileSystem;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Context;
@@ -19,11 +22,14 @@ public class OpenComputersEnvironmentDriver implements IOCManagedEnvPerp {
 
 	private String[] opencomputers_methodcache;
 	private Node opencomputers_node;
+	private Node opencomputers_fs;
 
 	private void opencomputers_assertReady() {
 		if (opencomputers_node == null) {
-			opencomputers_node = Network.newNode(this, Visibility.Network)
-					.withComponent(getComponentName()).create();
+			opencomputers_node = Network.newNode(this, Visibility.Network).withComponent(getComponentName()).create();
+			opencomputers_fs = (Node) FileSystem.asManagedEnvironment(FileSystem.fromClass(LanteaCraft.class,
+					ResourceAccess.getAssetKey(), "support/opencomputers/software"), "lanteacraft");
+
 		}
 	}
 
@@ -58,11 +64,19 @@ public class OpenComputersEnvironmentDriver implements IOCManagedEnvPerp {
 	@Override
 	public void onConnect(Node node) {
 		opencomputers_assertReady();
+		if (node.host() instanceof Context) {
+			node.connect(opencomputers_fs);
+		}
 	}
 
 	@Override
 	public void onDisconnect(Node node) {
 		opencomputers_assertReady();
+		if (node.host() instanceof Context) {
+			node.disconnect(opencomputers_fs);
+		} else if (node == this.opencomputers_node) {
+			opencomputers_fs.remove();
+		}
 	}
 
 	@Override
@@ -78,8 +92,7 @@ public class OpenComputersEnvironmentDriver implements IOCManagedEnvPerp {
 
 	@Override
 	public String getComponentName() {
-		return OpenComputersDriverManager.findComponentName(getClass()
-				.getSimpleName());
+		return OpenComputersDriverManager.findComponentName(getClass().getSimpleName());
 	}
 
 	@Override
@@ -89,45 +102,29 @@ public class OpenComputersEnvironmentDriver implements IOCManagedEnvPerp {
 			Class<?> zz = getClass();
 			Method[] methods = zz.getMethods();
 			for (Method m : methods) {
-				LCLog.debug(
-						"OpenComputers driver: assessing method %s (class %s).",
-						m.getName(), zz.getSimpleName());
-				Tag foundTag = ASMTag
-						.findTag(getClass(), m, "ComputerCallable");
+				LCLog.debug("OpenComputers driver: assessing method %s (class %s).", m.getName(), zz.getSimpleName());
+				Tag foundTag = ASMTag.findTag(getClass(), m, "ComputerCallable");
 				if (foundTag == null)
 					continue;
-				LCLog.debug("OpenComputers driver: adding method %s",
-						m.getName());
+				LCLog.debug("OpenComputers driver: adding method %s", m.getName());
 				alist.add(m.getName());
 			}
 			opencomputers_methodcache = alist.toArray(new String[0]);
 		}
-		return (opencomputers_methodcache == null) ? new String[0]
-				: opencomputers_methodcache;
+		return (opencomputers_methodcache == null) ? new String[0] : opencomputers_methodcache;
 	}
 
 	@Override
-	public Object[] invoke(String method, Context context, Arguments args)
-			throws Exception {
-		Method foundMethod = null;
-		for (Method m : getClass().getMethods())
-			if (m.getName().equals(method))
-				foundMethod = m;
-		if (foundMethod == null)
-			throw new Exception("No such method.");
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
 		try {
-			Class<?>[] types = foundMethod.getParameterTypes();
-			if (args.count() != types.length)
-				throw new Exception("Incorrect number of parameters.");
 			Object[] aargs = new Object[args.count()];
 			for (int i = 0; i < aargs.length; i++)
-				aargs[i] = OpenComputersDriverManager.performCastToType(
-						args.checkAny(i), types[i]);
-			Object aresult = foundMethod.invoke(this, aargs);
+				aargs[i] = args.checkAny(i);
+			Object aresult = ComputerMethodExecutor.executor().invokeMethod(getClass(), this, IComputerTypeCaster.typeCastOC,
+					method, aargs);
 			return new Object[] { aresult };
 		} catch (Exception exception) {
-			LCLog.warn("Problem calling method from OpenComputer driver!",
-					exception);
+			LCLog.warn("Problem calling method from OpenComputer driver!", exception);
 			throw new Exception(exception.getMessage());
 		}
 	}

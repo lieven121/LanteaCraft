@@ -13,8 +13,8 @@ import lc.common.LCLog;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.FurnaceRecipes;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 /**
  * Recipe registry implementation.
@@ -92,8 +92,7 @@ public class RecipeRegistry implements IRecipeRegistry {
 				varargs.add(grid[1].toString());
 				varargs.add(grid[2].toString());
 				varargs.addAll(qt);
-				LCLog.debug("Adding shaped recipe: [ '%s', '%s', '%s' ]", grid[0].toString(), grid[1].toString(),
-						grid[2].toString());
+				LCLog.debug("Adding shaped recipe: [ '%s', '%s', '%s' ]", grid[0].toString(), grid[1].toString(), grid[2].toString());
 				CraftingManager.getInstance().addRecipe(out.get(0), varargs.toArray());
 			} else if (type == RecipeType.SMELTING) {
 				Map<Integer, ItemStack> in = definition.getInputStacks();
@@ -104,7 +103,7 @@ public class RecipeRegistry implements IRecipeRegistry {
 				if (out.size() != 1 || !out.containsKey(0))
 					LCLog.fatal("Bad recipe %s: expected 1 output stack for smelting, got %s.", definition.getName(),
 							out.size());
-				FurnaceRecipes.instance().addSmeltingRecipe(in.get(0), out.get(0), 0.0f);
+				FurnaceRecipes.smelting().func_151394_a(in.get(0), out.get(0), 0.0f);
 			} else if (type == RecipeType.PROXY)
 				GameRegistry.addRecipe(definition.getParentObject());
 			else

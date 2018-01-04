@@ -9,14 +9,16 @@ import lc.common.base.LCBlock;
 import lc.common.base.LCTile;
 import lc.common.resource.ResourceAccess;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.Side;
 
 /**
  * Debugging glasses implementation
@@ -54,15 +56,29 @@ public class ItemGlasses extends ItemArmor {
 			if (tile != null)
 				if (tile instanceof LCTile) {
 					LCTile ownTile = (LCTile) tile;
+					ArrayList<String> stats = new ArrayList<String>();
+					if (gameSide == Side.CLIENT) {
+						stats.add(String.format("!RenderBox: %s", ownTile.getRenderBoundingBox()));
+						stats.add(String.format("!HitBox: %s", ownBlock.getCollisionBoundingBoxFromPool(world, x, y, z)));
+					}
+					
+					if (gameSide == Side.SERVER) {
+						stats.add(String.format("#HitBox: %s", ownBlock.getCollisionBoundingBoxFromPool(world, x, y, z)));
+					}
+					
+
 					try {
 						String[] dparams = ownTile.debug(gameSide);
 						if (dparams != null)
-							for (String v : dparams)
-								messages.add(String.format("   %s", v));
+							for (String s : dparams)
+								stats.add(s);
 					} catch (Throwable t) {
 						messages.add("Problem asking for tile debug data.");
 						LCLog.warn("Error fetching debugger data.", t);
 					}
+
+					for (String v : stats)
+						messages.add(String.format(" %s", v));
 				} else
 					messages.add(String.format("Unsupported tile type: %s", tile.getClass().getName()));
 		} else

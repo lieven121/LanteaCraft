@@ -8,14 +8,13 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import lc.api.components.ComponentType;
 import lc.api.defs.Definition;
-import lc.common.LCLog;
 import lc.common.base.LCItem;
 import lc.common.configuration.xml.ComponentConfig;
 import lc.common.resource.ResourceAccess;
 import lc.common.util.ScanningHelper;
 import lc.tiles.TileTransportRing;
 
-@Definition(name = "transportRingActivator", type = ComponentType.CORE, itemClass = ItemTransportRingActivator.class)
+@Definition(name = "transportRingActivator", type = ComponentType.MACHINE, itemClass = ItemTransportRingActivator.class)
 public class ItemTransportRingActivator extends LCItem {
 	/** Display icon */
 	public IIcon icon;
@@ -29,7 +28,7 @@ public class ItemTransportRingActivator extends LCItem {
 		// TODO Auto-generated method stub
 
 	}
-	
+
 	@Override
 	public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
 		return stack;
@@ -39,11 +38,9 @@ public class ItemTransportRingActivator extends LCItem {
 	public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int p_77648_7_,
 			float p_77648_8_, float p_77648_9_, float p_77648_10_) {
 		if (!world.isRemote) {
-			LCLog.debug("activating...");
 			TileTransportRing ring = (TileTransportRing) ScanningHelper.findNearestTileEntityOf(world,
 					TileTransportRing.class, x, y, z, AxisAlignedBB.getBoundingBox(-5, -5, -5, 5, 5, 5));
 			if (ring != null) {
-				LCLog.debug("transporting...");
 				ring.activate();
 			}
 		}

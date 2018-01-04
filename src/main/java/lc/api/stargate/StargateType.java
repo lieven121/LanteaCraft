@@ -4,6 +4,8 @@
  */
 package lc.api.stargate;
 
+import lc.common.LCLog;
+
 /**
  * Stargate type list
  *
@@ -14,7 +16,13 @@ public enum StargateType {
 	/** Standard */
 	STANDARD("stargate.standard", ""),
 	/** Atlantis */
-	ATLANTIS("stargate.pegasus", "pegasus");
+	ATLANTIS("stargate.pegasus", "pegasus"),
+	
+	WRAITH("stargate.wraith", "wraith"),
+	
+	NOX("stargate.nox", "nox");
+	
+	
 
 	private final String name;
 	private final String suffix;

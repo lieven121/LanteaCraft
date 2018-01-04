@@ -3,7 +3,7 @@ package lc.common.util.math;
 import java.util.EnumSet;
 import java.util.Random;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * Vector orientation map.
@@ -54,13 +54,13 @@ public enum Orientations {
 	}
 
 	/**
-	 * Convert a EnumFacing facing to an Orientation facing
+	 * Convert a ForgeDirection facing to an Orientation facing
 	 *
 	 * @param dir
 	 *            The source direction
 	 * @return The resultant Orientation
 	 */
-	public static Orientations from(EnumFacing dir) {
+	public static Orientations from(ForgeDirection dir) {
 		switch (dir) {
 		case NORTH:
 			return Orientations.NORTH;
@@ -106,18 +106,18 @@ public enum Orientations {
 	}
 
 	/**
-	 * @return The EnumFacing of this Orientation
+	 * @return The ForgeDirection of this Orientation
 	 */
-	public EnumFacing forge() {
+	public ForgeDirection forge() {
 		switch (this) {
 		case NORTH:
-			return EnumFacing.NORTH;
+			return ForgeDirection.NORTH;
 		case SOUTH:
-			return EnumFacing.SOUTH;
+			return ForgeDirection.SOUTH;
 		case EAST:
-			return EnumFacing.EAST;
+			return ForgeDirection.EAST;
 		case WEST:
-			return EnumFacing.WEST;
+			return ForgeDirection.WEST;
 		default:
 			return null;
 		}

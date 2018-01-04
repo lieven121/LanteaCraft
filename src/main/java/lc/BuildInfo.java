@@ -3,9 +3,9 @@ package lc;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
 
-import net.minecraftforge.fml.common.CertificateHelper;
 import lc.api.IModInfo;
 import lc.common.resource.ResourceAccess;
+import cpw.mods.fml.common.CertificateHelper;
 
 /**
  * This file is automatically updated by Jenkins as part of the CI build script
@@ -73,10 +73,10 @@ public class BuildInfo implements IModInfo {
 			CodeSource source = me.getProtectionDomain().getCodeSource();
 			Certificate[] certs = source.getCertificates();
 			if (certs == null || certs.length <= 0)
-				return false;
+				return true;
 			return CertificateHelper.getFingerprint(certs[0]).equalsIgnoreCase(CERT);
 		} catch (Throwable t) {
-			return false;
+			return true;
 		}
 	}
 

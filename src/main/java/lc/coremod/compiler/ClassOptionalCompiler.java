@@ -5,13 +5,14 @@ import java.util.Iterator;
 
 import lc.common.LCLog;
 import lc.coremod.RuntimeAnnotation;
-import net.minecraftforge.fml.common.Loader;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+
+import cpw.mods.fml.common.Loader;
 
 /**
  * Takes {@link RuntimeAnnotation} optional rules in a load-time binary base

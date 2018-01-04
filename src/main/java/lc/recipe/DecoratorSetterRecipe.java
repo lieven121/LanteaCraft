@@ -108,10 +108,4 @@ public class DecoratorSetterRecipe implements IRecipe {
 		return new ItemStack(decorTool);
 	}
 
-	@Override
-	public ItemStack[] getRemainingItems(InventoryCrafting inv) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

@@ -68,7 +68,7 @@ public class GFXBeam extends LCEntityFX {
 		GL11.glDepthMask(false);
 
 		float ux = (float) (prevPosX + (posX - prevPosX) * frame - EntityFX.interpPosX);
-		float uy = (float) (prevPosY + (posY - prevPosY) * frame - EntityFX.interpPosY);
+		float uy = (float) (prevPosY +1.5 + (posY - prevPosY) * frame - EntityFX.interpPosY);
 		float uz = (float) (prevPosZ + (posZ - prevPosZ) * frame - EntityFX.interpPosZ);
 		GL11.glTranslated(ux, uy, uz);
 
@@ -82,19 +82,22 @@ public class GFXBeam extends LCEntityFX {
 		GL11.glRotatef(90.0F, 1.0F, 0.0F, 0.0F);
 		GL11.glRotatef(rotYaw, 0.0F, 0.0F, -1.0F);
 		GL11.glRotatef(-rotPitch, 1.0F, 0.0F, 0.0F);
-
-		for (int t = 0; t < fins; t++) {
-			GL11.glRotatef(180.0F / (float) fins, 0.0F, 1.0F, 0.0F);
-			tessellator.startDrawingQuads();
-			tessellator.setBrightness(200);
-			tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, 1.0f);
-			tessellator.addVertexWithUV(var44, var44, 0.0f, 0.0f, 0.0f);
-			tessellator.addVertexWithUV(var44, var17 + length, 0.0f, 0.0f, length);
-			tessellator.addVertexWithUV(var17, var17 + length, 0.0f, length, length);
-			tessellator.addVertexWithUV(var17, var44, 0.0f, length, 0.0f);
-			tessellator.draw();
+		tessellator.startDrawing(5);
+		tessellator.setBrightness(240);
+		for (double i=0; i <= 6*Math.PI+0.14; i+= Math.PI/8) {
+			   tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, 1.0f);
+			   tessellator.addVertexWithUV(Math.cos(i)*1.9, var44+0,Math.sin(i)*1.9, length/(2*Math.PI*i), 0.0f);
+			   tessellator.addVertexWithUV(Math.cos(i)*1.9, var17+length ,Math.sin(i)*1.9, length/(2*Math.PI*i), length);
 		}
-
+	    tessellator.draw();
+	    tessellator.startDrawing(5);
+		tessellator.setBrightness(240);
+	    for (double i=0; i <= 2*Math.PI+0.14; i+= Math.PI/8) {
+	    		tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, 1.0f);
+			    tessellator.addVertexWithUV(Math.cos(i)*1.9, var17+length,Math.sin(i)*1.9, length/(2*Math.PI*i), 0.0f);
+			    tessellator.addVertexWithUV(Math.cos(-i)*1.9, var17+length ,Math.sin(-i)*1.9, length/(2*Math.PI*i), length);
+	    }
+	    tessellator.draw();
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 		GL11.glDepthMask(true);
 		GL11.glDisable(GL11.GL_BLEND);

@@ -7,11 +7,10 @@ import lc.api.components.IInterfaceRegistry;
 import lc.api.defs.IInterfaceDefinition;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.network.IGuiHandler;
-import net.minecraftforge.fml.relauncher.Side;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.network.IGuiHandler;
+import cpw.mods.fml.relauncher.Side;
 
 /**
  * LanteaCraft global GUI callback handler implementation
@@ -28,11 +27,17 @@ public class GUIHandler implements IGuiHandler {
 		LCLog.doAssert(def != null, "Can't handle server GUI request for element ID %s.", id);
 		try {
 			String containerClass = def.getContainerClass();
-			LCLog.debug("Creating container %s", containerClass);
-			TileEntity tile = world.getTileEntity(new BlockPos(x, y, z));
-			Class<?> container = Class.forName(containerClass);
-			Constructor<?> constr = container.getConstructor(new Class<?>[] { tile.getClass(), EntityPlayer.class });
-			return constr.newInstance(tile, player);
+			if (containerClass != null) {
+				LCLog.debug("Creating container %s", containerClass);
+				TileEntity tile = world.getTileEntity(x, y, z);
+				Class<?> container = Class.forName(containerClass);
+				Constructor<?> constr = container
+						.getConstructor(new Class<?>[] { tile.getClass(), EntityPlayer.class });
+				return constr.newInstance(tile, player);
+			} else {
+				LCLog.warn("Attempted to open client-side only UI %s on server.", def.getName());
+				return null;
+			}
 		} catch (Throwable t) {
 			LCLog.warn("Failed to create container object!", t);
 			return null;
@@ -52,10 +57,31 @@ public class GUIHandler implements IGuiHandler {
 			try {
 				String guiClass = def.getGUIClass();
 				LCLog.debug("Creating GUI %s", guiClass);
-				TileEntity tile = world.getTileEntity(new BlockPos(x, y, z));
 				Class<?> gui = Class.forName(guiClass);
-				Constructor<?> constr = gui.getConstructor(new Class<?>[] { tile.getClass(), EntityPlayer.class });
-				return constr.newInstance(tile, player);
+				Constructor<?> constr = null;
+
+				TileEntity tile = world.getTileEntity(x, y, z);
+				if (tile == null) {
+					try {
+						constr = gui.getConstructor(new Class<?>[] { EntityPlayer.class });
+					} catch (NoSuchMethodException nsme) {
+					}
+				} else {
+					try {
+						constr = gui.getConstructor(new Class<?>[] { tile.getClass(), EntityPlayer.class });
+					} catch (NoSuchMethodException nsme) {
+					}
+					if (constr == null)
+						try {
+							constr = gui.getConstructor(new Class<?>[] { EntityPlayer.class });
+						} catch (NoSuchMethodException nsme) {
+						}
+				}
+				if (constr == null)
+					throw new Exception("Can't find legal constructor.");
+				if (tile != null && constr.getParameterTypes().length > 1)
+					return constr.newInstance(tile, player);
+				return constr.newInstance(player);
 			} catch (Throwable t) {
 				LCLog.warn("Failed to create GUI object!", t);
 				return null;

@@ -1,17 +1,18 @@
 package lc.common;
 
+import net.minecraftforge.event.terraingen.InitMapGenEvent;
+import cpw.mods.fml.common.event.FMLFingerprintViolationEvent;
+import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import lc.api.audio.ISoundController;
 import lc.api.components.IConfigurationProvider;
 import lc.api.defs.IContainerDefinition;
 import lc.api.defs.IRecipeDefinition;
 import lc.api.rendering.IParticleMachine;
-import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent;
-import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent;
-import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
-import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 
 /**
  * Hint provider contract interface.
@@ -117,4 +118,12 @@ public interface IHintProvider {
 	 *            The start event
 	 */
 	public void beforeServerStarting(FMLServerAboutToStartEvent event);
+
+	/**
+	 * Called by the system when the world generator is being initialized
+	 * 
+	 * @param event
+	 *            The world generator event
+	 */
+	public void initMapGen(InitMapGenEvent event);
 }

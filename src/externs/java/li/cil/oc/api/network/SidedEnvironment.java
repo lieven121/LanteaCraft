@@ -1,9 +1,9 @@
 package li.cil.oc.api.network;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * This interface is like {@link net.minecraft.inventory.ISidedInventory} is to
@@ -32,7 +32,7 @@ public interface SidedEnvironment {
      * @return the node for the specified side.
      * @see li.cil.oc.api.network.Environment#node
      */
-    Node sidedNode(EnumFacing side);
+    Node sidedNode(ForgeDirection side);
 
     /**
      * Whether the environment provides a node to connect to on the specified
@@ -51,5 +51,5 @@ public interface SidedEnvironment {
      * @return whether the environment provides a node for the specified side.
      */
     @SideOnly(Side.CLIENT)
-    boolean canConnect(EnumFacing side);
+    boolean canConnect(ForgeDirection side);
 }

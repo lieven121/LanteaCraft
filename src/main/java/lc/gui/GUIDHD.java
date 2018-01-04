@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
+import lc.api.stargate.StargateType;
 import lc.common.LCLog;
 import lc.common.base.ux.LCContainerGUI;
 import lc.common.base.ux.LCContainerTab;
@@ -35,12 +36,13 @@ public class GUIDHD extends LCContainerGUI {
 		final double dhdRadius2 = dhdWidth * 0.275;
 		final double dhdRadius3 = dhdWidth * 0.45;
 		private int dhdTop, dhdCentreX, dhdCentreY, ticks = 0;
-		private ResourceLocation dhdLayer, dhdButtonLayer;
-
+		private ResourceLocation dhdLayer, dhdButtonLayer, dhdButtonLight;
+		
 		public DHDDefaultTab() {
 			super();
 			dhdLayer = ResourceAccess.getNamedResource("textures/gui/dhd/dhd_gui.png");
 			dhdButtonLayer = ResourceAccess.getNamedResource("textures/gui/dhd/dhd_centre.png");
+			dhdButtonLight = ResourceAccess.getNamedResource("textures/gui/dhd/button_light.png");
 		}
 
 		@Override
@@ -71,19 +73,38 @@ public class GUIDHD extends LCContainerGUI {
 		protected Dimension getTabDimensions() {
 			return new Dimension(dhdWidth, dhdHeight + dhdTop);
 		}
-
+		
+		
+		private int getColor(StargateType typeDHD) {
+			switch (typeDHD) {
+			case ATLANTIS:
+				return 0x0080FF;
+			case WRAITH:
+				return 0xFE80FE;
+			case NOX:
+				return 0x80FE80;
+			default:
+				return 0xFE8000;
+			}
+		}
+		
 		@Override
 		protected void drawBackgroundLayer(LCContainerGUI container, float partialTickCount, int mouseX, int mouseY) {
+			TileDHD dhd = (TileDHD) container.getTile();
+			String suffix = ((dhd.getDHDType().getSuffix() != null && dhd.getDHDType().getSuffix().length() > 0) ? "_"+dhd.getDHDType().getSuffix()+".png":".png"); 
+			
+			dhdLayer = ResourceAccess.getNamedResource("textures/gui/dhd/dhd_gui"+suffix);
+			dhdButtonLayer = ResourceAccess.getNamedResource("textures/gui/dhd/dhd_centre"+suffix);
 			container.bindTexture(dhdLayer);
 			container.drawTexturedRect(0, dhdTop, dhdWidth, dhdHeight);
 
 			container.bindTexture(dhdButtonLayer, 128, 64);
 			GL11.glEnable(GL11.GL_BLEND);
-			TileDHD dhd = (TileDHD) container.getTile();
+			int activecolor = getColor(dhd.getDHDType());
 			if (dhd.clientAskConnectionOpen())
-				container.setColor(1.0, 0.5, 0.0);
+				container.setColor(activecolor);
 			else
-				container.setColor(0.5, 0.25, 0.0);
+			container.setColor(activecolor/2);
 			double rx = dhdWidth * 48 / 512.0;
 			double ry = dhdHeight * 48 / (90.0 + 256.0);
 			Tessellator.instance.disableColor();

@@ -13,7 +13,7 @@
  * that can be added as component nodes to the network, so they can be used
  * from computers).
  */
-@net.minecraftforge.fml.common.API(
+@cpw.mods.fml.common.API(
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|FileSystem",
         apiVersion = API.VERSION)

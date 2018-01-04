@@ -3,6 +3,15 @@ package lc.tiles;
 import java.util.ArrayDeque;
 import java.util.List;
 
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.world.chunk.Chunk;
+import cpw.mods.fml.relauncher.Side;
 import lc.LCRuntime;
 import lc.api.jit.Tag;
 import lc.api.rendering.IBlockSkinnable;
@@ -30,15 +39,6 @@ import lc.common.util.math.Orientations;
 import lc.common.util.math.Trans3;
 import lc.common.util.math.Vector3;
 import lc.server.world.TeleportationHelper;
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.fml.relauncher.Side;
 
 public class TileTransportRing extends LCMultiblockTile implements ITransportRingAccess, ITileRenderInfo,
 		IBlockSkinnable {
@@ -177,7 +177,7 @@ public class TileTransportRing extends LCMultiblockTile implements ITransportRin
 		case TRANSPORT:
 			if (command.args.length == 1) {
 				Vector3 destination = (Vector3) command.args[0];
-				GFXBeam beam = new GFXBeam(getWorldObj(), this, destination.add(0.5f, 0.5f, 0.5f), true, 0.55f, 16, 4,
+				GFXBeam beam = new GFXBeam(getWorldObj(), this, destination.add(0.5f, 1.5f, 0.5f), true, 0.55f, 16, 4,
 						12.5f);
 				LCRuntime.runtime.hints().particles().placeParticle(getWorldObj(), beam);
 			}
@@ -441,15 +441,15 @@ public class TileTransportRing extends LCMultiblockTile implements ITransportRin
 	@Override
 	@Tag(name = "ComputerCallable")
 	public void activate() {
+		if (getState() != MultiblockState.FORMED)
+			return;
 		if (busy())
 			return;
 		TileTransportRing slave = thinkServerFindSlave();
-		LCLog.debug("finding slave...");
 		if (slave != null) {
-			LCLog.debug("doing transport...");
-			commandQueue.add(new TransportRingCommand(TransportRingCommandType.ENGAGE, 50.0d, slave));
-			commandQueue.add(new TransportRingCommand(TransportRingCommandType.TRANSPORT, 20.0d, slave));
-			commandQueue.add(new TransportRingCommand(TransportRingCommandType.DISENGAGE, 50.0d, slave));
+			commandQueue.add(new TransportRingCommand(TransportRingCommandType.ENGAGE, 60.0d, slave));
+			commandQueue.add(new TransportRingCommand(TransportRingCommandType.TRANSPORT, 30.0d, slave));
+			commandQueue.add(new TransportRingCommand(TransportRingCommandType.DISENGAGE, 40.0d, slave));
 		}
 	}
 

@@ -1,9 +1,12 @@
 package lc.client.models;
 
 import static lc.client.opengl.GLHelper.pushTexVertex;
+
+import lc.api.stargate.StargateType;
 import lc.client.opengl.BufferDisplayList;
 import lc.client.render.fabs.tiles.TileStargateBaseRenderer;
 import lc.common.base.pipeline.LCTileRenderPipeline;
+import lc.common.resource.ResourceAccess;
 import lc.common.resource.ResourceMap;
 import lc.common.util.data.StateMap;
 import lc.common.util.math.Orientations;
@@ -118,20 +121,77 @@ public class ModelStargate {
 		for (int i = 0; i < numChevrons; i++) {
 			GL11.glPushMatrix();
 			GL11.glRotated(chevronRotations[i], 0.0f, 0.0f, 1.0f);
+			if ((tile.getStargateType().equals(StargateType.STANDARD) || tile.getStargateType().equals(StargateType.NOX) )) 
 			GL11.glTranslated(-state.get("chevron-dist-" + i, 0.0d), 0, 0);
+			
 			renderChevronImmediate(state.get("chevron-light-" + i, 0.0d));
 			GL11.glPopMatrix();
 		}
-
-		tesr.bind(textures.resource("glyphs"));
+		
+		double offsetRing = 360.0/numRingSegments*9;
+			tesr.bind(textures.resource("glyphs"));
+		
 		GL11.glPushMatrix();
-		GL11.glRotated(state.get("ring-rotation", 0.0d), 0.0f, 0.0f, 1.0f);
+		
+		if ((tile.getStargateType().equals(StargateType.STANDARD) || tile.getStargateType().equals(StargateType.NOX) )) 
+		GL11.glRotated(state.get("ring-rotation", 0.0d)+offsetRing, 0.0f, 0.0f, 1.0f);
+		else 
+			GL11.glRotated(offsetRing, 0.0f, 0.0f, 1.0f);
 		if (listRing.supported()) {
 			listRing.bind();
 			listRing.release();
 		} else
 			renderRingImmediate();
 		GL11.glPopMatrix();
+		if (!(tile.getStargateType().equals(StargateType.STANDARD) || tile.getStargateType().equals(StargateType.NOX) )) {
+		String suffixGlow = (tile.getStargateType().getSuffix() != null && tile.getStargateType().getSuffix().length() > 0) ? "_" + tile.getStargateType().getSuffix()
+				+ "_glow_${TEX_QUALITY}.png" : "_${TEX_QUALITY}.png";
+
+			tesr.bind(ResourceAccess.getNamedResource(ResourceAccess
+				.formatResourceName("textures/tileentity/stargate_glyphs" + suffixGlow)));
+			GL11.glPushMatrix();
+			GL11.glTranslated(0, 0, 0.01);
+			GL11.glRotated(offsetRing, 0.0f, 0.0f, 1.0f);
+			GL11.glTexCoord2d(0,0);
+			GL11.glVertex3d(0, 0, 1);
+			GL11.glTexCoord2d(1,1);
+			GL11.glVertex3d(1, 1, 1);
+			//GL11.glEnable(GL11.GL_LIGHTING);
+			// GL11.glEnable(GL11.GL_LIGHT7);
+			if (listRing.supported()) {
+				listRing.bind();
+				listRing.release();
+			} else
+				if (state.get("ring-rotation", 0.0d) != 0.0 | tile.getActivatedChevrons() != 0)
+				renderLightsImmediate(state.get("ring-rotation", 0.0d));
+			//GL11.glDisable(GL11.GL_LIGHTING);
+			GL11.glPopMatrix();
+		}
+		
+		if (state.get("incomming", false) && (state.get("incomming-rotation", 0.0d) != 0.0d) && (!(tile.getStargateType().equals(StargateType.STANDARD) || tile.getStargateType().equals(StargateType.NOX) ))) {
+			String suffixGlow = (tile.getStargateType().getSuffix() != null && tile.getStargateType().getSuffix().length() > 0) ? "_" + tile.getStargateType().getSuffix()
+					+ "_glow_${TEX_QUALITY}.png" : "_${TEX_QUALITY}.png";
+
+				tesr.bind(ResourceAccess.getNamedResource(ResourceAccess
+					.formatResourceName("textures/tileentity/stargate_glyphs" + suffixGlow)));
+				GL11.glPushMatrix();
+				GL11.glTranslated(0, 0, 0.01);
+				GL11.glRotated(offsetRing, 0.0f, 0.0f, 1.0f);
+				GL11.glTexCoord2d(0,0);
+				GL11.glVertex3d(0, 0, 1);
+				GL11.glTexCoord2d(1,1);
+				GL11.glVertex3d(1, 1, 1);
+				//GL11.glEnable(GL11.GL_LIGHTING);
+				// GL11.glEnable(GL11.GL_LIGHT7);
+				if (listRing.supported()) {
+					listRing.bind();
+					listRing.release();
+				} else
+					if (state.get("incomming-rotation", 0.0d) != 0.0 | tile.getActivatedChevrons() != 0)
+					renderLightsIncomingImmediate(state.get("ring-rotation", 0.0d));
+				//GL11.glDisable(GL11.GL_LIGHTING);
+				GL11.glPopMatrix();
+		}
 	}
 
 	private void renderShellImmediate() {
@@ -228,6 +288,7 @@ public class ModelStargate {
 		vertex(x1, y1, z1, 0, 16);
 		vertex(x1 + w1, y1 - w1, z1, 4, 12);
 		vertex(x2, y2 - w2, z1, 4, 2);
+		
 		// Front-face bottom
 		vertex(x1 + w1, y1 - w1, z1, 4, 12);
 		vertex(x1, y1, z1, 0, 16);
@@ -303,6 +364,29 @@ public class ModelStargate {
 		vertex(x2, -y2 + w2, z1, 16, 4);
 		vertex(x2, -y2 + w2, 0, 16, 0);
 
+		//stripes chevronWidth / 4 ((4-stripes)/4.0*(chevronWidth / 2)+chevronWidth / 2)-w2
+		final int NUMOFSTRIPES = 4;  //TODO propper stripes
+		for (int stripes = 0; stripes < NUMOFSTRIPES; stripes++ ) {
+	/*		vertex(x2-0.1, y2-(0.1+2d / 16d)*chevronWidth / 4, z1+0.001, 0, 2);
+			vertex(x1, y1, z1+0.001, 0, 16);
+			vertex(x1 + w1, y1 - w1, z1+0.001, 4, 12);
+			vertex(x2-0.1, y2-(0.1+2d / 16d)*chevronWidth / 4 - w2, z1+0.001, 4, 2);*/
+		
+			vertex(x2-0.08*stripes-0.025, y2-((0.08*stripes-0.025)+1d / 18d)*chevronWidth / 2, z1+0.001, 0, 2); //left up corner
+			vertex(x2-0.08*(stripes+1),  y2-((0.08*(stripes+1))+1d / 18d)*chevronWidth / 2 , z1+0.001, 0, 16); // left un corrner
+			vertex(x2-0.08*(stripes+1), y1-((0.08*(stripes+1))+1d / 18d)*chevronWidth / 4 , z1+0.001, 4, 12); // right un correne
+			vertex(x2-0.08*stripes-0.025, y1-((0.08*stripes-0.025)+1d / 18d)*chevronWidth / 4, z1+0.001, 4, 2); // right upper corrner*/
+			
+		/*vertex(x2-0.08*stripes-0.025, (3.0-stripes)/NUMOFSTRIPES*(y2-y1)+y1, z1+0.001, 0, 2); //left up corner
+		vertex(x2-0.08*(stripes+1), (3.0-stripes)/NUMOFSTRIPES*(y2-y1)+y1 , z1+0.001, 0, 16); // left un corrner
+		vertex(x2-0.08*(stripes+1), y1 - w1+w1/8, z1+0.001, 4, 12); // right un correne
+		vertex(x2-0.08*stripes-0.025, y2 - w2+w2/8, z1+0.001, 4, 2); // right upper corrner*/
+		
+		vertex(x2-0.08*stripes-0.025, -y1+((0.08*stripes-0.025)+1d / 18d)*chevronWidth / 4, z1+0.001, 12, 0);
+		vertex(x2-0.08*(stripes+1), -y1+((0.08*(stripes+1))+1d / 18d)*chevronWidth / 4, z1+0.001, 12, 12);
+		vertex(x2-0.08*(stripes+1),  -y2+((0.08*(stripes+1))+1d / 18d)*chevronWidth / 2, z1+0.001, 16, 16);
+		vertex(x2-0.08*stripes-0.025, -y2 +((0.08*stripes-0.025)+1d / 18d)*chevronWidth / 2, z1+0.001, 16, 0);// right upper corrner
+		}
 		GL11.glColor3f(1, 1, 1);
 		GL11.glEnd();
 		GL11.glEnable(GL11.GL_LIGHTING);
@@ -317,13 +401,73 @@ public class ModelStargate {
 		selectTile(ringSymbolTextureIndex);
 		double u = 0, du = 0, dv = 0;
 		for (int i = 0; i < numRingSegments; i++) {
-			u = i * (1.0d / numRingSegments);
+			u = 1- i * (1.0d / numRingSegments);
 			du = 1.0d / numRingSegments;
 			dv = 0.66d;
 			pushTexVertex(radiusMidInner * cos[i], radiusMidInner * sin[i], z, u + du, dv);
 			pushTexVertex(radiusMidOuter * cos[i], radiusMidOuter * sin[i], z, u + du, 0);
 			pushTexVertex(radiusMidOuter * cos[i + 1], radiusMidOuter * sin[i + 1], z, u, 0);
 			pushTexVertex(radiusMidInner * cos[i + 1], radiusMidInner * sin[i + 1], z, u, dv);
+		}
+		GL11.glEnd();
+	}
+	
+	private void renderLightsImmediate(double currentlight) {
+		double radiusMidInner = ringInnerMovingRadius - 1 / 128d;
+		double radiusMidOuter = ringMidRadius + 1 / 128d;
+		double z = ringDepth - 1d / 64d;
+		GL11.glNormal3f(0, 0, 1);
+		GL11.glBegin(GL11.GL_QUADS);
+		selectTile(ringSymbolTextureIndex);
+		double u = 0, du = 0, dv = 0;
+		for (double i = (currentlight/360*numRingSegments) ; i < (currentlight/360*numRingSegments)+1; i++) {
+			u = 1- (i) * (1.0d / numRingSegments);
+			du = 1.0d / numRingSegments;
+			dv = 0.66d;
+			int i2= (int) i;
+			double a = 2 * Math.PI * i / numRingSegments;
+			double a2 = 2 * Math.PI * (i+1) / numRingSegments;
+			pushTexVertex(radiusMidInner * Math.cos(a), radiusMidInner * Math.sin(a), z, u + du, dv);
+			pushTexVertex(radiusMidOuter * Math.cos(a), radiusMidOuter * Math.sin(a), z, u + du, 0);
+			pushTexVertex(radiusMidOuter * Math.cos(a2), radiusMidOuter * Math.sin(a2), z, u+0, 0);
+			pushTexVertex(radiusMidInner * Math.cos(a2), radiusMidInner * Math.sin(a2), z, u+0, dv);
+			
+			
+			/*
+			pushTexVertex(radiusMidInner * Math.cos(i), radiusMidInner * sin[i2], z, u + du, dv);
+			pushTexVertex(radiusMidOuter * cos[i2], radiusMidOuter * sin[i2], z, u + du, 0);
+			pushTexVertex(radiusMidOuter * cos[i2 + 1], radiusMidOuter * sin[i2 + 1], z, u, 0);
+			pushTexVertex(radiusMidInner * cos[i2 + 1], radiusMidInner * sin[i2 + 1], z, u, dv);*/
+		}
+		GL11.glEnd();
+	}
+	
+	private void renderLightsIncomingImmediate(double currentlight) {
+		double radiusMidInner = ringInnerMovingRadius - 1 / 128d;
+		double radiusMidOuter = ringMidRadius + 1 / 128d;
+		double z = ringDepth - 1d / 64d;
+		GL11.glNormal3f(0, 0, 1);
+		GL11.glBegin(GL11.GL_QUADS);
+		selectTile(ringSymbolTextureIndex);
+		double u = 0, du = 0, dv = 0;
+		for (double i = numRingSegments-1; i > (currentlight/360*numRingSegments)-1 ; i--) {
+			u = 1- (i) * (1.0d / numRingSegments);
+			du = 1.0d / numRingSegments;
+			dv = 0.66d;
+			int i2= (int) i;
+			double a = 2 * Math.PI * i / numRingSegments;
+			double a2 = 2 * Math.PI * (i+1) / numRingSegments;
+			pushTexVertex(radiusMidInner * Math.cos(a), radiusMidInner * Math.sin(a), z, u + du, dv);
+			pushTexVertex(radiusMidOuter * Math.cos(a), radiusMidOuter * Math.sin(a), z, u + du, 0);
+			pushTexVertex(radiusMidOuter * Math.cos(a2), radiusMidOuter * Math.sin(a2), z, u+0, 0);
+			pushTexVertex(radiusMidInner * Math.cos(a2), radiusMidInner * Math.sin(a2), z, u+0, dv);
+			
+			
+			/*
+			pushTexVertex(radiusMidInner * Math.cos(i), radiusMidInner * sin[i2], z, u + du, dv);
+			pushTexVertex(radiusMidOuter * cos[i2], radiusMidOuter * sin[i2], z, u + du, 0);
+			pushTexVertex(radiusMidOuter * cos[i2 + 1], radiusMidOuter * sin[i2 + 1], z, u, 0);
+			pushTexVertex(radiusMidInner * cos[i2 + 1], radiusMidInner * sin[i2 + 1], z, u, dv);*/
 		}
 		GL11.glEnd();
 	}

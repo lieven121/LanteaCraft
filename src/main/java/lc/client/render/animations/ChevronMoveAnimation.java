@@ -1,5 +1,6 @@
 package lc.client.render.animations;
 
+import lc.api.stargate.StargateType;
 import lc.client.animation.Animation;
 import lc.common.base.LCTile;
 import lc.common.util.game.RunnableTileCallback;
@@ -30,7 +31,8 @@ public class ChevronMoveAnimation extends Animation {
 		super(time, resample, new RunnableTileCallback() {
 			@Override
 			public void run(LCTile tile) {
-				tile.mixer().replayChannel("lock");
+				if ((StargateType.fromOrdinal(tile.getBlockMetadata()) == StargateType.STANDARD)) tile.mixer().replayChannel("lock");
+				else tile.mixer().replayChannel("lock_alt");
 			}
 		}, null);
 		addProperty("chevron-dist-" + whichChevron, 0.0d, newPos, InterpolationMode.SQUARE);

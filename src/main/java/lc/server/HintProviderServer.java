@@ -2,6 +2,18 @@ package lc.server;
 
 import java.util.HashMap;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.event.FMLFingerprintViolationEvent;
+import cpw.mods.fml.common.event.FMLInterModComms.IMCEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
+import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.terraingen.InitMapGenEvent;
 import lc.LCRuntime;
 import lc.LanteaCraft;
 import lc.api.audio.ISoundController;
@@ -18,21 +30,11 @@ import lc.common.configuration.xml.ComponentConfig;
 import lc.common.crypto.KeyTrustRegistry;
 import lc.common.util.BeaconStreamThread;
 import lc.common.util.StatsProvider;
-import lc.server.database.UniverseManager;
 import lc.server.openal.VoidSoundController;
+import lc.server.stargate.StargateManager;
+import lc.server.stargate.UniverseManager;
 import lc.server.world.LCChunkLoadCallback;
 import lc.server.world.LCLoadedChunkManager;
-import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent;
-import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent;
-import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
-import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 /**
  * Server-side hint provider implementation
@@ -78,14 +80,15 @@ public class HintProviderServer implements IHintProvider {
 		LCLog.debug("Providing base initialization helpers.");
 		serverHookBus = new ServerEventHooks(this);
 		beaconMgr = new BeaconStreamThread(this);
-		stargateMgr = new StargateManager(this);
 		universeMgr = new UniverseManager();
+		stargateMgr = new StargateManager(universeMgr);
 		trustChain = new KeyTrustRegistry();
 		chunkLoadCallback = new LCChunkLoadCallback();
 		chunkLoadManager = new LCLoadedChunkManager();
 		renderConfiguration = LCRuntime.runtime.config().config(ComponentType.CLIENT);
 		FMLCommonHandler.instance().bus().register(serverHookBus);
 		MinecraftForge.EVENT_BUS.register(serverHookBus);
+		MinecraftForge.TERRAIN_GEN_BUS.register(serverHookBus);
 		ForgeChunkManager.setForcedChunkLoadingCallback(LanteaCraft.instance, chunkLoadCallback);
 	}
 
@@ -144,6 +147,14 @@ public class HintProviderServer implements IHintProvider {
 	public LCLoadedChunkManager chunkLoaders() {
 		return chunkLoadManager;
 	}
+	
+	public LCMasterWorldGen generator() {
+		return worldGenerator;
+	}
+	
+	public BeaconStreamThread stats() {
+		return beaconMgr;
+	}
 
 	@Override
 	public ISoundController audio() {
@@ -193,6 +204,12 @@ public class HintProviderServer implements IHintProvider {
 	@Override
 	public IParticleMachine particles() {
 		throw new RuntimeException("Particles not permitted on server.");
+	}
+
+	@Override
+	public void initMapGen(InitMapGenEvent event) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

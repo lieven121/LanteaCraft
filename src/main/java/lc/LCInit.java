@@ -4,7 +4,9 @@ import java.util.Random;
 
 import lc.api.components.RecipeType;
 import lc.api.defs.IDefinitionReference;
+import lc.api.init.Biomes;
 import lc.api.init.Blocks;
+import lc.api.init.Dimensions;
 import lc.api.init.Entities;
 import lc.api.init.Interfaces;
 import lc.api.init.Items;
@@ -12,6 +14,8 @@ import lc.api.init.Recipes;
 import lc.api.init.Structures;
 import lc.api.jit.AnyPredicate;
 import lc.api.world.OreType;
+import lc.biomes.BiomeAbydosDesert;
+import lc.biomes.BiomeChulakForrest;
 import lc.blocks.BlockBrazier;
 import lc.blocks.BlockConfigurator;
 import lc.blocks.BlockDHD;
@@ -31,14 +35,20 @@ import lc.common.impl.registry.InterfaceDefinition;
 import lc.common.impl.registry.RecipeProxy;
 import lc.common.impl.registry.SimpleRecipeDefinition;
 import lc.common.impl.registry.StructureDefinition;
+import lc.dimensions.any.LCOreDecorator;
+import lc.dimensions.chulak.ChulakDimension;
 import lc.entity.EntityStaffProjectile;
 import lc.generation.AbydosPyramid;
 import lc.generation.AbydosPyramid.AbydosPyramidFeature;
 import lc.generation.SurfaceStargate;
 import lc.generation.SurfaceStargate.SurfaceStargateFeature;
+import lc.dimensions.abydos.AbydosDimension;
 import lc.items.ItemCraftingReagent;
 import lc.items.ItemDecorator;
+import lc.items.ItemGDO;
 import lc.items.ItemGlasses;
+import lc.items.ItemInstantGate;
+import lc.items.ItemInstantStruct;
 import lc.items.ItemIrisUpgrade;
 import lc.items.ItemLanteaAlloyIngot;
 import lc.items.ItemLanteaOre;
@@ -48,9 +58,9 @@ import lc.items.ItemTransportRingActivator;
 import lc.recipe.DecoratorSetterRecipe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 /**
  * Registration initializer
@@ -87,6 +97,10 @@ public class LCInit {
 		Recipes recipes = runtime.recipes();
 		Structures structures = runtime.structures();
 		Interfaces interfaces = runtime.interfaces();
+		Biomes biomes = runtime.biomes();
+		final int abysdosID = 4;
+		final int chulakID = 5;
+		Dimensions dimensions = runtime.dimensions();
 
 		/* Initialize game blocks and items */
 		blocks.stargateRingBlock = DefinitionWrapperProvider.provide(BlockStargateRing.class);
@@ -109,9 +123,12 @@ public class LCInit {
 		items.lanteaCraftingItem = DefinitionWrapperProvider.provide(ItemCraftingReagent.class);
 		items.lanteaDecoratorTool = DefinitionWrapperProvider.provide(ItemDecorator.class);
 		items.lanteaStargateIris = DefinitionWrapperProvider.provide(ItemIrisUpgrade.class);
+		items.gdo = DefinitionWrapperProvider.provide(ItemGDO.class);
 		items.lanteaTransportRingActivator = DefinitionWrapperProvider.provide(ItemTransportRingActivator.class);
 		items.lanteaPortableDHD = DefinitionWrapperProvider.provide(ItemPortableDHD.class);
 		items.goauldStaffWeapon = DefinitionWrapperProvider.provide(ItemStaff.class);
+		items.instantGate = DefinitionWrapperProvider.provide(ItemInstantGate.class);
+		items.instantStruct = DefinitionWrapperProvider.provide(ItemInstantStruct.class);
 
 		entities.staffProjectile = DefinitionWrapperProvider.provide(EntityStaffProjectile.class);
 
@@ -129,7 +146,7 @@ public class LCInit {
 					Random rng = (Random) t[1];
 					World world = (World) t[0];
 					int x = (Integer) t[2], y = (Integer) t[3];
-					if (world.provider.getDimensionId() != 0)
+					if (world.provider.dimensionId != 0 & world.provider.dimensionId != abysdosID)
 						return false;
 					if (x % 16 != 0 || y % 16 != 0)
 						return false;
@@ -160,12 +177,34 @@ public class LCInit {
 		}.addComp("AbydosPyramid", AbydosPyramidFeature.class);
 		// runtime.registries().structures().register(structures.scatteredAbydosPyramid);
 
+		structures.decoratorNaquadahOre = new LCOreDecorator(OreType.NAQUADAH, blocks.lanteaOreBlock.ref()) {
+			@Override
+			public boolean canGenerateAt(World world, Random rng, int x, int z) {
+				if (world.provider.dimensionId != 0 & world.provider.dimensionId != abysdosID)
+					return false;
+				if (x % 16 != 0 || z % 16 != 0)
+					return false;
+				return true;
+			}
+		};
+		runtime.registries().structures().register(structures.decoratorNaquadahOre);
+
 		/* Initialize interfaces */
 		interfaces.stargateUI = new InterfaceDefinition("stargateUI", "lc.container.ContainerStargate",
 				"lc.gui.GUIStargate");
 		interfaces.dhdUI = new InterfaceDefinition("dhdUI", "lc.container.ContainerDHD", "lc.gui.GUIDHD");
+		interfaces.dhdPortableUI = new InterfaceDefinition("dhdPortableUI", null, "lc.gui.GUIPortableDHD");
+		interfaces.gdoUI = new InterfaceDefinition("gdoUI", null, "lc.gui.GUIGDO");
 		runtime.registries().interfaces().addDefinition(interfaces.stargateUI);
 		runtime.registries().interfaces().addDefinition(interfaces.dhdUI);
+		runtime.registries().interfaces().addDefinition(interfaces.dhdPortableUI);
+		runtime.registries().interfaces().addDefinition(interfaces.gdoUI);
+		
+		
+		biomes.abydosDesert = new BiomeAbydosDesert(82);
+		biomes.chulakForrest = new BiomeChulakForrest(83);
+		dimensions.abydosDimension = new AbydosDimension(abysdosID, abysdosID);
+		dimensions.chulakDimension = new ChulakDimension(chulakID, chulakID);
 
 	}
 

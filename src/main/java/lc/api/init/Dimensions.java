@@ -16,5 +16,5 @@ public class Dimensions {
 
 	/** Abydos dimension definition */
 	public IDimensionDefinition abydosDimension;
-
+	public IDimensionDefinition chulakDimension;
 }

@@ -1,7 +1,6 @@
 package li.cil.oc.api.detail;
 
 import li.cil.oc.api.FileSystem;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 
 import java.util.concurrent.Callable;
@@ -47,12 +46,13 @@ public interface ItemAPI {
      * Call this in the init phase or later, <em>not</em> in pre-init.
      *
      * @param name    the label and identifier to use for the loot disk.
-     * @param color   the color of the disk, as a Minecraft color.
+     * @param color   the color of the disk, as a Minecraft color (so 0-15,
+     *                with 0 being black, 1 red and so on).
      * @param factory the callable to call for creating file system instances.
      * @return an item stack representing the registered loot disk, to allow
      * adding a recipe for your loot disk, for example.
      */
-    ItemStack registerFloppy(String name, EnumDyeColor color, Callable<li.cil.oc.api.fs.FileSystem> factory);
+    ItemStack registerFloppy(String name, int color, Callable<li.cil.oc.api.fs.FileSystem> factory);
 
     /**
      * Register a single custom EEPROM.

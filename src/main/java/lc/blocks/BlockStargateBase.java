@@ -33,7 +33,7 @@ import net.minecraft.world.World;
  */
 @Definition(name = "stargateBase", type = ComponentType.STARGATE, blockClass = BlockStargateBase.class, itemBlockClass = ItemBlockStargateBase.class, tileClass = TileStargateBase.class)
 public class BlockStargateBase extends LCBlock {
-
+	
 	private static final int blockCount = StargateType.count();
 
 	private static IBlockRenderInfo renderInfo = new IBlockRenderInfo() {
@@ -56,8 +56,10 @@ public class BlockStargateBase extends LCBlock {
 		public boolean doInventoryRender(int data) {
 			return true;
 		}
+		
 	};
-
+	
+	 
 	/** Top and bottom texture map */
 	protected IIcon topAndBottomTexture[] = new IIcon[StargateType.count()];
 	/** Front texture map */
@@ -70,6 +72,7 @@ public class BlockStargateBase extends LCBlock {
 		super(Material.ground);
 		setHardness(3F).setResistance(2000F);
 		setOpaque(false).setProvidesInventory(false).setProvidesTypes(true).setCanRotate(true);
+
 	}
 
 	@Override
@@ -137,6 +140,8 @@ public class BlockStargateBase extends LCBlock {
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float cx,
 			float cy, float cz) {
 		TileStargateBase te = (TileStargateBase) world.getTileEntity(x, y, z);
+		//setBlockBounds(0f, 0.0f, 0.35f, 1f, 1f, 0.75f);
+		//TODO 
 		if (te != null && te.getState() == MultiblockState.FORMED) {
 			player.openGui(LanteaCraft.instance, LCRuntime.runtime.interfaces().stargateUI.getGUIID(), world, x, y, z);
 			return true;

@@ -1,9 +1,9 @@
 package li.cil.oc.api;
 
+import cpw.mods.fml.common.event.FMLInterModComms;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.fml.common.event.FMLInterModComms;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -226,7 +226,7 @@ public final class IMC {
      * <p/>
      * Signature of callbacks must be:
      * <pre>
-     * boolean callback(EntityPlayer player, BlockPos pos, boolean changeDurability)
+     * boolean callback(EntityPlayer player, int x, int y, int z, boolean changeDurability)
      * </pre>
      * <p/>
      * Callbacks must be declared as <tt>packagePath.className.methodName</tt>.

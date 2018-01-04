@@ -4,9 +4,10 @@ import java.io.FileNotFoundException;
 import java.util.Map;
 
 import lc.common.LCLog;
-import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 import org.apache.logging.log4j.LogManager;
+
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 /**
  * The main IFMLLoadingPlugin hook. Forge should be told through arguments or

@@ -1,6 +1,6 @@
 /**
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2016. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2015. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
 
@@ -11,8 +11,7 @@ import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
@@ -32,12 +31,12 @@ public interface ITurtleAccess
 	 * Returns a vector containing the integer co-ordinates at which the turtle resides.
 	 * @return a vector containing the integer co-ordinates at which the turtle resides.
 	 */
-	public BlockPos getPosition();
+	public ChunkCoordinates getPosition();
 
     /**
      * TODO: Document me
      */
-    public boolean teleportTo( World world, BlockPos pos );
+    public boolean teleportTo( World world, int x, int y, int z );
 
 	/**
 	 * Returns a vector containing the floating point co-ordinates at which the turtle is rendered.
@@ -56,12 +55,12 @@ public interface ITurtleAccess
 	 * Returns the world direction the turtle is currently facing.
 	 * @return the world direction the turtle is currently facing.
 	 */
-	public EnumFacing getDirection();
+	public int getDirection();
 
     /**
      * TODO: Document me
      */
-    public void setDirection( EnumFacing dir );
+    public void setDirection( int dir );
 
     /**
      * TODO: Document me

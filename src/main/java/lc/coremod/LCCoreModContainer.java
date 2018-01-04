@@ -1,10 +1,10 @@
 package lc.coremod;
 
-import net.minecraftforge.fml.common.DummyModContainer;
-import net.minecraftforge.fml.common.LoadController;
-import net.minecraftforge.fml.common.ModMetadata;
-
 import com.google.common.eventbus.EventBus;
+
+import cpw.mods.fml.common.DummyModContainer;
+import cpw.mods.fml.common.LoadController;
+import cpw.mods.fml.common.ModMetadata;
 
 /**
  * Forge expects us to return a ModContainer when loading core-mod code. This is

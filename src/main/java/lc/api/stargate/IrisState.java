@@ -7,18 +7,16 @@ package lc.api.stargate;
  *
  */
 public enum IrisState {
-	/** No iris is present. */
-	None,
-	/** Iris is in error state. */
-	Error,
+	/** No iris */
+	NONE,
 	/** Iris is open */
-	Open,
+	OPEN,
 	/** Iris is closed */
-	Closed,
+	CLOSED,
 	/** Iris is opening */
-	Opening,
+	OPENING,
 	/** Iris is closing */
-	Closing;
+	CLOSING;
 
 	/**
 	 * Find an iris state from an ordinal

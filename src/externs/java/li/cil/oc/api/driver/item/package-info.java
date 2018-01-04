@@ -4,7 +4,7 @@
  * These interfaces allow specializing item drivers to provide static data,
  * that is without creating an actual environment.
  */
-@net.minecraftforge.fml.common.API(
+@cpw.mods.fml.common.API(
         owner = API.ID_OWNER,
         provides = "OpenComputersAPI|Driver|Item",
         apiVersion = API.VERSION)

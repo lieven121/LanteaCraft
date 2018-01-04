@@ -1,6 +1,6 @@
 /**
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2016. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2015. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
 
@@ -10,11 +10,8 @@ import dan200.computercraft.api.filesystem.IMount;
 import dan200.computercraft.api.filesystem.IWritableMount;
 import dan200.computercraft.api.media.IMediaProvider;
 import dan200.computercraft.api.peripheral.IPeripheralProvider;
-import dan200.computercraft.api.permissions.ITurtlePermissionProvider;
 import dan200.computercraft.api.redstone.IBundledRedstoneProvider;
 import dan200.computercraft.api.turtle.ITurtleUpgrade;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
 import java.lang.reflect.Method;
@@ -25,32 +22,7 @@ import java.lang.reflect.Method;
  * but may be called before it is fully loaded.
  */
 public final class ComputerCraftAPI
-{
-    public static boolean isInstalled()
-    {
-        findCC();
-        return computerCraft != null;
-    }
-
-    public static String getInstalledVersion()
-    {
-        findCC();
-        if( computerCraft_getVersion != null )
-        {
-            try {
-                return (String)computerCraft_getVersion.invoke( null );
-            } catch (Exception e) {
-                // It failed
-            }
-        }
-        return "";
-    }
-
-    public static String getAPIVersion()
-    {
-        return "1.78";
-    }
-
+{	
 	/**
 	 * Creates a numbered directory in a subfolder of the save directory for a given world, and returns that number.<br>
 	 * Use in conjuction with createSaveDirMount() to create a unique place for your peripherals or media items to store files.<br>
@@ -66,8 +38,8 @@ public final class ComputerCraftAPI
 		if( computerCraft_createUniqueNumberedSaveDir != null )
 		{
 			try {
-				return (Integer)computerCraft_createUniqueNumberedSaveDir.invoke( null, world, parentSubPath );
-			} catch (Exception e) {
+				return ((Integer)computerCraft_createUniqueNumberedSaveDir.invoke( null, world, parentSubPath )).intValue();
+			} catch (Exception e){
 				// It failed
 			}
 		}
@@ -194,13 +166,13 @@ public final class ComputerCraftAPI
      * @return If there is a block capable of emitting bundled redstone at the location, it's signal (0-65535) will be returned.
      * If there is no block capable of emitting bundled redstone at the location, -1 will be returned.
      */
-    public static int getBundledRedstoneOutput( World world, BlockPos pos, int side )
+    public static int getBundledRedstoneOutput( World world, int x, int y, int z, int side )
     {
         findCC();
         if( computerCraft_getDefaultBundledRedstoneOutput != null )
         {
             try {
-                return (Integer)computerCraft_getDefaultBundledRedstoneOutput.invoke( null, world, pos, side );
+                return ((Integer)computerCraft_getDefaultBundledRedstoneOutput.invoke( null, world, x, y, z, side )).intValue();
             } catch (Exception e){
                 // It failed
             }
@@ -225,34 +197,15 @@ public final class ComputerCraftAPI
         }
     }
 
-    /**
-     * Registers a permission handler to restrict where turtles can move or build
-     * @see dan200.computercraft.api.permissions.ITurtlePermissionProvider
-     */
-    public static void registerPermissionProvider( ITurtlePermissionProvider handler )
-    {
-        findCC();
-        if( computerCraft_registerPermissionProvider != null )
-        {
-            try {
-                computerCraft_registerPermissionProvider.invoke( null, handler );
-            } catch (Exception e) {
-                // It failed
-            }
-        }
-    }
-
-    // The functions below here are private, and are used to interface with the non-API ComputerCraft classes.
-	// Reflection is used here so you can develop your mod without decompiling ComputerCraft and including
-	// it in your solution, and so your mod won't crash if ComputerCraft is installed.
+	// The functions below here are private, and are used to interface with the non-API ComputerCraft classes.
+	// Reflection is used here so you can develop your mod in MCP without decompiling ComputerCraft and including
+	// it in your solution.
 	
 	private static void findCC()
 	{
 		if( !ccSearched ) {
 			try {
 				computerCraft = Class.forName( "dan200.computercraft.ComputerCraft" );
-                computerCraft_getVersion = findCCMethod( "getVersion", new Class[]{
-                } );
 				computerCraft_createUniqueNumberedSaveDir = findCCMethod( "createUniqueNumberedSaveDir", new Class[]{
                     World.class, String.class
                 } );
@@ -272,13 +225,10 @@ public final class ComputerCraftAPI
                     IBundledRedstoneProvider.class
                 } );
                 computerCraft_getDefaultBundledRedstoneOutput = findCCMethod( "getDefaultBundledRedstoneOutput", new Class[] {
-                    World.class, BlockPos.class, EnumFacing.class
+                    World.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE
                 } );
                 computerCraft_registerMediaProvider = findCCMethod( "registerMediaProvider", new Class[] {
                     IMediaProvider.class
-                } );
-                computerCraft_registerPermissionProvider = findCCMethod( "registerPermissionProvider", new Class[] {
-                    ITurtlePermissionProvider.class
                 } );
 			} catch( Exception e ) {
 				System.out.println( "ComputerCraftAPI: ComputerCraft not found." );
@@ -304,7 +254,6 @@ public final class ComputerCraftAPI
 	
 	private static boolean ccSearched = false;	
 	private static Class computerCraft = null;
-    private static Method computerCraft_getVersion = null;
 	private static Method computerCraft_createUniqueNumberedSaveDir = null;
 	private static Method computerCraft_createSaveDirMount = null;
 	private static Method computerCraft_createResourceMount = null;
@@ -313,5 +262,4 @@ public final class ComputerCraftAPI
     private static Method computerCraft_registerBundledRedstoneProvider = null;
     private static Method computerCraft_getDefaultBundledRedstoneOutput = null;
     private static Method computerCraft_registerMediaProvider = null;
-    private static Method computerCraft_registerPermissionProvider = null;
 }

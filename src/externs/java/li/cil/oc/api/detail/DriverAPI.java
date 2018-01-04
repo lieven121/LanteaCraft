@@ -5,7 +5,6 @@ import li.cil.oc.api.driver.Converter;
 import li.cil.oc.api.driver.EnvironmentHost;
 import li.cil.oc.api.driver.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.Collection;
@@ -61,10 +60,12 @@ public interface DriverAPI {
      * get actual instances of drivers registered via {@link #add(li.cil.oc.api.driver.Block)}.
      *
      * @param world the world containing the block.
-     * @param pos   the position of the block.
+     * @param x     the X coordinate of the block.
+     * @param y     the Y coordinate of the block.
+     * @param z     the Z coordinate of the block.
      * @return a driver for the block, or <tt>null</tt> if there is none.
      */
-    Block driverFor(World world, BlockPos pos);
+    Block driverFor(World world, int x, int y, int z);
 
     /**
      * Looks up a driver for the specified item stack.

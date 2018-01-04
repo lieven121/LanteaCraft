@@ -1,7 +1,6 @@
 package li.cil.oc.api.internal;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
 /**
@@ -21,9 +20,11 @@ public interface Wrench {
      *
      * @param player   the player using the tool
      * @param world    the world containing the block the wrench is used on.
-     * @param pos      the position of the block.
+     * @param x        the X coordinate of the block.
+     * @param y        the Y coordinate of the block.
+     * @param z        the Z coordinate of the block.
      * @param simulate whether to simulate the usage.
      * @return whether the wrench can be used on the block.
      */
-    boolean useWrenchOnBlock(EntityPlayer player, World world, BlockPos pos, boolean simulate);
+    boolean useWrenchOnBlock(EntityPlayer player, World world, int x, int y, int z, boolean simulate);
 }

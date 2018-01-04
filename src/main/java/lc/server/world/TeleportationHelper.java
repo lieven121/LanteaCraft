@@ -3,6 +3,7 @@ package lc.server.world;
 import java.util.Iterator;
 
 import lc.LCRuntime;
+import lc.common.LCLog;
 import lc.common.util.math.Facing3;
 import lc.common.util.math.Trans3;
 import lc.common.util.math.Vector3;
@@ -37,9 +38,10 @@ public class TeleportationHelper {
 	public static Entity sendEntityToWorld(Entity entity, Trans3 src, Trans3 dst, int dimension) {
 		Vector3 lPos = src.ip(entity.posX, entity.posY, entity.posZ);
 		Vector3 lVel = src.iv(entity.motionX, entity.motionY, entity.motionZ);
-		Vector3 lFac = src.iv(yawVector(entity));
-		Vector3 newPosition = dst.p(-lPos.x, lPos.y, -lPos.z);
-		Vector3 newVelocity = dst.v(-lVel.x, lVel.y, -lVel.z);
+		Vector3 lFac = src.v(yawVector(entity));
+		Vector3 newPosition = dst.p(lPos.x, lPos.y, lPos.z);
+		Vector3 newVelocity = dst.v(lVel.x, lVel.y, lVel.z);
+		LCLog.debug("lieven121 here is : "+lFac);
 		Vector3 gFac = dst.v(lFac.mul(-1));
 		Facing3 newFacing = new Facing3(yawAngle(gFac), entity.rotationPitch);
 		Entity newEntity = sendEntityToWorld(entity, dimension, newPosition, newFacing);

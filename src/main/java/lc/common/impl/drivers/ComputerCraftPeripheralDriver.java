@@ -2,14 +2,15 @@ package lc.common.impl.drivers;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 
+import net.minecraft.tileentity.TileEntity;
 import lc.api.components.IntegrationType;
-import lc.api.jit.ASMTag;
 import lc.api.jit.DeviceDrivers.DriverProvider;
 import lc.api.jit.DeviceDrivers.DriverRTCallback;
+import lc.api.jit.ASMTag;
 import lc.api.jit.Tag;
 import lc.common.LCLog;
-import net.minecraft.tileentity.TileEntity;
 import dan200.computercraft.api.lua.ILuaContext;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.peripheral.IComputerAccess;
@@ -20,6 +21,7 @@ public class ComputerCraftPeripheralDriver implements IPeripheral {
 
 	private String[] computercraft_methodcache;
 	private ArrayList<IComputerAccess> computercraft_icalist;
+	private HashMap<IComputerAccess, ComputerCraftScuffMount> computercraft_mounts;
 
 	public ComputerCraftPeripheralDriver() {
 		// TODO Auto-generated constructor stub
@@ -28,7 +30,16 @@ public class ComputerCraftPeripheralDriver implements IPeripheral {
 	private void computercraft_assertReady() {
 		if (computercraft_icalist == null) {
 			computercraft_icalist = new ArrayList<IComputerAccess>();
+			computercraft_mounts = new HashMap<IComputerAccess, ComputerCraftScuffMount>();
 		}
+	}
+
+	@DriverRTCallback(event = "isSideSolid")
+	public void computerCraft_checkIsSideSolid(Object[] args) {
+		String[] klasses = (String[]) args[1];
+		for (String klass : klasses)
+			if (klass.startsWith("dan200"))
+				args[0] = true;
 	}
 
 	@DriverRTCallback(event = "computerEvent")
@@ -67,21 +78,16 @@ public class ComputerCraftPeripheralDriver implements IPeripheral {
 	@Override
 	public Object[] callMethod(IComputerAccess computer, ILuaContext context, int method, Object[] arguments)
 			throws LuaException, InterruptedException {
-		String label = computercraft_methodcache[method];
-		Method foundMethod = null;
-		for (Method m : getClass().getMethods())
-			if (m.getName().equals(label))
-				foundMethod = m;
-		if (foundMethod == null)
-			throw new LuaException("No such method.");
+		String[] methods = ComputerMethodExecutor.executor().getMethods(getClass());
+		if (method < 0 || method >= methods.length) {
+			LCLog.warn("ComputerCraft driver: callMethod requesting method %s but only have %s methods!", method,
+					methods.length);
+			throw new LuaException("Error invoking.");
+		}
+		String label = methods[method];
 		try {
-			Class<?>[] types = foundMethod.getParameterTypes();
-			if (arguments.length != types.length)
-				throw new Exception("Incorrect number of parameters.");
-			Object[] aargs = new Object[arguments.length];
-			for (int i = 0; i < aargs.length; i++)
-				aargs[i] = ComputerCraftDriverManager.performCastToType(arguments[i], types[i]);
-			Object aresult = foundMethod.invoke(this, aargs);
+			Object aresult = ComputerMethodExecutor.executor().invokeMethod(getClass(), this,
+					IComputerTypeCaster.typeCastCC, label, arguments);
 			return new Object[] { aresult };
 		} catch (Exception exception) {
 			LCLog.warn("Problem calling method from ComputerCraft driver!", exception);
@@ -95,6 +101,14 @@ public class ComputerCraftPeripheralDriver implements IPeripheral {
 		synchronized (computercraft_icalist) {
 			computercraft_icalist.add(computer);
 		}
+		try {
+			ComputerCraftScuffMount mount = ComputerCraftScuffMount.generateMount();
+			mount.init();
+			computercraft_mounts.put(computer, mount);
+			computer.mount("/lanteacraft", mount);
+		} catch (Exception ex) {
+			LCLog.fatal("Unable to generate Computer mount.", ex);
+		}
 	}
 
 	@Override
@@ -103,6 +117,15 @@ public class ComputerCraftPeripheralDriver implements IPeripheral {
 		synchronized (computercraft_icalist) {
 			computercraft_icalist.remove(computer);
 		}
+		try {
+			computer.unmount("/lanteacraft");
+			ComputerCraftScuffMount mount = computercraft_mounts.get(computer);
+			if (mount != null)
+				mount.shutdown();
+		} catch (Exception ex) {
+			LCLog.fatal("Unable to garbage collect Computer mount.", ex);
+		}
+
 	}
 
 	@Override
@@ -110,9 +133,9 @@ public class ComputerCraftPeripheralDriver implements IPeripheral {
 		if (TileEntity.class.isAssignableFrom(this.getClass()) && other instanceof TileEntity) {
 			TileEntity me = TileEntity.class.cast(this);
 			TileEntity them = (TileEntity) other;
-			if (!me.getWorld().equals(them.getWorld()))
+			if (!me.getWorldObj().equals(them.getWorldObj()))
 				return false;
-			return me.getPos().equals(them.getPos());
+			return me.xCoord == them.xCoord && me.yCoord == them.yCoord && me.zCoord == them.zCoord;
 		}
 		return false;
 	}

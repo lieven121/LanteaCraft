@@ -4,6 +4,7 @@ import lc.common.base.LCItemBlock;
 import lc.common.configuration.xml.ComponentConfig;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IIcon;
 
 /**
  * LanteaCraft global ore as item implementation.
@@ -27,7 +28,12 @@ public class ItemBlockLanteaOre extends LCItemBlock {
 	@Override
 	public void configure(ComponentConfig c) {
 		// TODO Auto-generated method stub
+		
+	}
 
+	@Override
+	public IIcon getIconFromDamage(int i) {
+		return blockType.getIcon(0, i);
 	}
 
 	@Override

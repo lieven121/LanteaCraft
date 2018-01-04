@@ -68,9 +68,9 @@ public class GUIStargate extends LCContainerGUI {
 			String address = stargate.getStargateAddress().getAddressString();
 			container.drawAddressString(128, 56, address, 9, "-", "-");
 			container.drawFramedSymbols(128, 8, stargate.getStargateType(), address.toCharArray());
-			IconButton.drawButton(Minecraft.getMinecraft(), "copy", 240, 54, mouseX - container.offsetLeft(), mouseY
+			IconButton.drawButton(Minecraft.getMinecraft(), "copy", 230, 54, mouseX - container.offsetLeft()-10, mouseY
 					- container.offsetTop(), container.isMouseDown(), 0.75, 1.0f);
-			if (IconButton.buttonHovered(240, 54, mouseX - container.offsetLeft(), mouseY - container.offsetTop(), 1.0))
+			if (IconButton.buttonHovered(230, 54, mouseX - container.offsetLeft(), mouseY - container.offsetTop(), 1.0))
 				container.drawTooltip(I18n.format("lc.interface.clipboard.write"), mouseX - container.offsetLeft(),
 						mouseY - container.offsetTop());
 		}
@@ -83,7 +83,7 @@ public class GUIStargate extends LCContainerGUI {
 		@Override
 		protected void mouseMovedOrUp(LCContainerGUI container, int x, int y, int mouseButton) {
 			if (mouseButton == 0 || mouseButton == 1) {
-				if (IconButton.buttonDepressed(240, 54, x - container.offsetLeft(), y - container.offsetTop(),
+				if (IconButton.buttonDepressed(230, 54, x - container.offsetLeft()-10, y - container.offsetTop(),
 						container.isMouseDown(), 1.0)) {
 					IStargateAccess stargate = (IStargateAccess) container.getTile();
 					String address = stargate.getStargateAddress().getAddressString();
@@ -157,10 +157,10 @@ public class GUIStargate extends LCContainerGUI {
 			IconButton.drawIcon(Minecraft.getMinecraft(), "icon_iris", 0, 5, 0.5f, 1.0f);
 			container.setTextColor(0xFFFFFF);
 			container.drawString(I18n.format("lc.interface.options.iris_mode"), 15, 7);
-			IconButton.drawButton(Minecraft.getMinecraft(), "icon_ethernet", 85, 5, mouseX - container.offsetLeft(),
+			IconButton.drawButton(Minecraft.getMinecraft(), "icon_rstorchon", 85, 5, mouseX - container.offsetLeft(),
 					mouseY - container.offsetTop(), container.isMouseDown(), 0.5, 1.0f);
 			if (IconButton.buttonHovered(85, 5, mouseX - container.offsetLeft(), mouseY - container.offsetTop(), 0.5))
-				container.drawTooltip(I18n.format("lc.interface.redstone.active_ext"), mouseX - container.offsetLeft(),
+				container.drawTooltip(I18n.format("lc.interface.redstone.active_high"), mouseX - container.offsetLeft(),
 						mouseY - container.offsetTop());
 
 		}

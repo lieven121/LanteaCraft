@@ -23,6 +23,7 @@ import lc.common.network.LCNetworkException;
 import lc.common.network.LCPacket;
 import lc.common.network.packets.LCClientUpdate;
 import lc.common.network.packets.LCTileSync;
+import lc.common.util.ReflectionHelper;
 import lc.common.util.Tracer;
 import lc.common.util.java.DestructableReferenceQueue;
 import lc.common.util.math.DimensionPos;
@@ -31,18 +32,19 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.Packet;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.common.util.ForgeDirection;
+import cpw.mods.fml.relauncher.Side;
 
 /**
  * Generic tile-entity implementation with default handlers.
  *
  * @author AfterLifeLochie
  */
-public abstract class LCTile extends TileEntity implements ITickable, IInventory, IPacketHandler, IBlockEventHandler, IRenderInfo,
+public abstract class LCTile extends TileEntity implements IInventory, IPacketHandler, IBlockEventHandler, IRenderInfo,
 		IConfigure {
 
 	private static HashMap<Class<? extends LCTile>, HashMap<String, ArrayList<String>>> callbacks = new HashMap<Class<? extends LCTile>, HashMap<String, ArrayList<String>>>();
@@ -108,7 +110,9 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 		ArrayList<String> cbs = getCallbacks(meClazz, type);
 		if (cbs == null)
 			return;
+		Tracer.begin(meClazz, String.format("doCallbacksNow invocation: %s", type));
 		doCallbacks(meClazz, me, cbs, params);
+		Tracer.end();
 	}
 
 	/**
@@ -144,19 +148,20 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	 */
 	public static void doCallbacks(Class<? extends LCTile> me, Object meObject, ArrayList<String> methods,
 			Object[] aparams) {
-		Tracer.begin(meObject);
+		Tracer.begin(me, String.format("doCallbacks invocation: %s", methods.size()));
 		Method[] meMethods = me.getMethods();
 		for (String methodName : methods)
 			for (Method invoke : meMethods)
 				if (invoke.getName().equalsIgnoreCase(methodName)) {
+					if (aparams == null)
+						aparams = new Object[] { meObject };
+					Tracer.begin(me, String.format("doCallbacks method invocation: %s", invoke));
 					try {
-						if (aparams == null)
-							invoke.invoke(meObject, new Object[] { (LCTile) meObject });
-						else
-							invoke.invoke(meObject, aparams);
+						ReflectionHelper.invokeWithExpansions(meObject, invoke, aparams);
 					} catch (Throwable t) {
 						LCLog.warn("Error when processing callback %s!", methodName, t);
 					}
+					Tracer.end();
 					break;
 				}
 		Tracer.end();
@@ -202,7 +207,7 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	 * Invocation of update methods is as follows:
 	 * 
 	 * <pre>
-	 * update() [Minecraft] {
+	 * updateEntity() [Minecraft] {
 	 * - thinkClient()
 	 * - thinkClientPost()
 	 * - requestUpdatePacket()
@@ -222,7 +227,7 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	 * Invocation of update methods is as follows:
 	 * 
 	 * <pre>
-	 * update() [Minecraft] {
+	 * updateEntity() [Minecraft] {
 	 * - thinkClient()
 	 * - thinkClientPost()
 	 * - requestUpdatePacket()
@@ -242,7 +247,7 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	 * Invocation of update methods is as follows:
 	 * 
 	 * <pre>
-	 * update() [Minecraft] {
+	 * updateEntity() [Minecraft] {
 	 * - thinkServer()
 	 * - thinkServerPost()
 	 * - sendUpdatePackets()
@@ -260,7 +265,7 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	 * Invocation of update methods is as follows:
 	 * 
 	 * <pre>
-	 * update() [Minecraft] {
+	 * updateEntity() [Minecraft] {
 	 * - thinkServer()
 	 * - thinkServerPost()
 	 * - sendUpdatePackets()
@@ -344,10 +349,10 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	 *
 	 * @return The canRotate of the block.
 	 */
-	public EnumFacing getRotation() {
+	public ForgeDirection getRotation() {
 		if (compound == null || !compound.hasKey("canRotate"))
-			return EnumFacing.NORTH;
-		return EnumFacing.VALUES[compound.getInteger("canRotate")];
+			return ForgeDirection.NORTH;
+		return ForgeDirection.getOrientation(compound.getInteger("canRotate"));
 	}
 
 	/**
@@ -356,7 +361,7 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	 * @param direction
 	 *            The canRotate.
 	 */
-	public void setRotation(EnumFacing direction) {
+	public void setRotation(ForgeDirection direction) {
 		if (compound == null)
 			compound = new NBTTagCompound();
 		compound.setInteger("canRotate", direction.ordinal());
@@ -467,11 +472,12 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 
 	@Override
 	public void handlePacket(LCPacket packetOf, EntityPlayer player) throws LCNetworkException {
+		Tracer.begin(this);
 		if (packetOf instanceof LCTileSync)
 			if (worldObj.isRemote) {
 				clientDataDirty = false;
 				compound = ((LCTileSync) packetOf).compound;
-				worldObj.markBlockForUpdate(getPos());
+				worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 			}
 		if (packetOf instanceof LCClientUpdate)
 			if (!worldObj.isRemote)
@@ -484,6 +490,12 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 		} finally {
 			Tracer.end();
 		}
+		Tracer.end();
+	}
+
+	@Override
+	public boolean canUpdate() {
+		return true;
 	}
 
 	/**
@@ -494,7 +506,7 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	 * </p>
 	 */
 	@Override
-	public void update() {
+	public void updateEntity() {
 		Tracer.begin(this);
 		if (worldObj != null)
 			if (worldObj.isRemote) {
@@ -503,6 +515,7 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 				thinkClientPost();
 				Tracer.end();
 				if (clientDataDirty) {
+					Tracer.begin(this, "enqueueClientDataUpdateReq");
 					if (clientDataCooldown > 0)
 						clientDataCooldown--;
 					if (clientDataCooldown <= 0) {
@@ -510,6 +523,7 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 								.sendToServer(new LCClientUpdate(new DimensionPos(this)));
 						clientDataCooldown += (30 * 20);
 					}
+					Tracer.end();
 				}
 			} else {
 				Tracer.begin(this, "thinkServer implementation");
@@ -518,8 +532,10 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 				Tracer.end();
 				if (nbtDirty) {
 					nbtDirty = false;
+					Tracer.begin(this, "enqueueNBTDataUpdate");
 					LCTileSync packet = new LCTileSync(new DimensionPos(this), compound);
 					LCRuntime.runtime.network().getPreferredPipe().sendToAllAround(packet, packet.target, 128.0d);
+					Tracer.end();
 				}
 			}
 		Tracer.end();
@@ -532,6 +548,18 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 			compound = p_145839_1_.getCompoundTag("base-tag");
 		else
 			compound = new NBTTagCompound();
+
+		if (p_145839_1_.hasKey("inventory") && getInventory() != null) {
+			IInventory inventory = getInventory();
+			NBTTagList tagList = p_145839_1_.getTagList("inventory", Constants.NBT.TAG_COMPOUND);
+			for (int i = 0; i < tagList.tagCount(); i++) {
+				NBTTagCompound tag = (NBTTagCompound) tagList.getCompoundTagAt(i);
+				byte slot = tag.getByte("slot");
+				if (slot >= 0 && slot < inventory.getSizeInventory())
+					inventory.setInventorySlotContents(slot, ItemStack.loadItemStackFromNBT(tag));
+			}
+		}
+
 		markNbtDirty();
 		try {
 			load(p_145839_1_);
@@ -545,6 +573,22 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 		super.writeToNBT(p_145841_1_);
 		if (compound != null)
 			p_145841_1_.setTag("base-tag", compound);
+
+		if (getInventory() != null) {
+			IInventory inventory = getInventory();
+			NBTTagList itemList = new NBTTagList();
+			for (int i = 0; i < inventory.getSizeInventory(); i++) {
+				ItemStack stack = inventory.getStackInSlot(i);
+				if (stack != null) {
+					NBTTagCompound tag = new NBTTagCompound();
+					tag.setByte("slot", (byte) i);
+					stack.writeToNBT(tag);
+					itemList.appendTag(tag);
+				}
+			}
+			p_145841_1_.setTag("inventory", itemList);
+		}
+
 		try {
 			save(p_145841_1_);
 		} catch (Throwable t) {
@@ -573,12 +617,32 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 		return getInventory().decrStackSize(p_70298_1_, p_70298_2_);
 	}
 
+	@Override
+	public ItemStack getStackInSlotOnClosing(int p_70304_1_) {
+		if (getInventory() == null)
+			return null;
+		return getInventory().getStackInSlotOnClosing(p_70304_1_);
+	}
 
 	@Override
 	public void setInventorySlotContents(int p_70299_1_, ItemStack p_70299_2_) {
 		if (getInventory() == null)
 			return;
 		getInventory().setInventorySlotContents(p_70299_1_, p_70299_2_);
+	}
+
+	@Override
+	public String getInventoryName() {
+		if (getInventory() == null)
+			return null;
+		return getInventory().getInventoryName();
+	}
+
+	@Override
+	public boolean hasCustomInventoryName() {
+		if (getInventory() == null)
+			return false;
+		return getInventory().hasCustomInventoryName();
 	}
 
 	@Override
@@ -596,17 +660,17 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 	}
 
 	@Override
-	public void openInventory(EntityPlayer player) {
+	public void openInventory() {
 		if (getInventory() == null)
 			return;
-		getInventory().openInventory(player);
+		getInventory().openInventory();
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer player) {
+	public void closeInventory() {
 		if (getInventory() == null)
 			return;
-		getInventory().closeInventory(player);
+		getInventory().closeInventory();
 	}
 
 	@Override
@@ -670,6 +734,14 @@ public abstract class LCTile extends TileEntity implements ITickable, IInventory
 		if (server == null || !server.ready())
 			return null;
 		return server.assign(this, filename, sys.getPosition(this), properties);
+	}
+
+	public int getRedstoneOutput(int side) {
+		return 0;
+	}
+
+	public boolean canConnectRedstone(int side) {
+		return false;
 	}
 
 }

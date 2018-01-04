@@ -7,18 +7,18 @@ import lc.api.rendering.IRenderInfo;
 import lc.api.rendering.ITileRenderInfo;
 import lc.common.LCLog;
 import lc.common.configuration.IConfigure;
+import lc.common.util.java.MethodInvocationResolver;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * Generic block implementation
@@ -29,8 +29,8 @@ import net.minecraft.world.World;
 public abstract class LCBlock extends BlockContainer implements IRenderInfo, IConfigure {
 
 	/** Rotation direction map across Y-axis */
-	protected static final EnumFacing[] directions = new EnumFacing[] { EnumFacing.SOUTH, EnumFacing.WEST,
-			EnumFacing.NORTH, EnumFacing.EAST };
+	protected static final ForgeDirection[] directions = new ForgeDirection[] { ForgeDirection.SOUTH,
+			ForgeDirection.WEST, ForgeDirection.NORTH, ForgeDirection.EAST };
 
 	/** If the block instance is opaque */
 	protected boolean isOpaque = false;
@@ -148,12 +148,16 @@ public abstract class LCBlock extends BlockContainer implements IRenderInfo, ICo
 	 *
 	 * @param world
 	 *            The world object
-	 * @param pos
-	 *            The BlockPos
+	 * @param x
+	 *            The x-coordinate
+	 * @param y
+	 *            The y-coordinate
+	 * @param z
+	 *            The z-coordinate
 	 * @return The rotation element
 	 */
-	public EnumFacing getRotation(IBlockAccess world, BlockPos pos) {
-		TileEntity tile = world.getTileEntity(pos);
+	public ForgeDirection getRotation(IBlockAccess world, int x, int y, int z) {
+		TileEntity tile = world.getTileEntity(x, y, z);
 		if (tile == null || !(tile instanceof LCTile))
 			return null;
 		return ((LCTile) tile).getRotation();
@@ -164,15 +168,19 @@ public abstract class LCBlock extends BlockContainer implements IRenderInfo, ICo
 	 *
 	 * @param world
 	 *            The world object
-	 * @param pos
-	 *            The BlockPos
+	 * @param x
+	 *            The x-coordinate
+	 * @param y
+	 *            The y-coordinate
+	 * @param z
+	 *            The z-coordinate
 	 * @param direction
 	 *            The rotation element
 	 */
-	public void setRotation(World world, BlockPos pos, EnumFacing direction) {
+	public void setRotation(World world, int x, int y, int z, ForgeDirection direction) {
 		if (world.isRemote)
 			return;
-		TileEntity tile = world.getTileEntity(pos);
+		TileEntity tile = world.getTileEntity(x, y, z);
 		if (tile == null || !(tile instanceof LCTile))
 			return;
 		((LCTile) tile).setRotation(direction);
@@ -180,6 +188,26 @@ public abstract class LCBlock extends BlockContainer implements IRenderInfo, ICo
 
 	@Override
 	public final boolean isOpaqueCube() {
+		return isOpaque;
+	}
+	
+	@Override
+	public boolean isSideSolid(IBlockAccess world, int x, int y, int z, ForgeDirection side) {
+		boolean def = super.isSideSolid(world, x, y, z, side);
+		if (tileType != null) {
+			TileEntity t = world.getTileEntity(x, y, z);
+			if (t instanceof LCTile){
+				String[] klasses = MethodInvocationResolver.getCallerClassNames(0);
+				Object[] map = new Object[] { def, klasses };
+				LCTile.doCallbacksNow(t, "isSideSolid", new Object[] { map });
+				return (Boolean) map[0];
+			}
+		}
+		return def;
+	}
+
+	@Override
+	public boolean renderAsNormalBlock() {
 		return isOpaque;
 	}
 
@@ -204,40 +232,86 @@ public abstract class LCBlock extends BlockContainer implements IRenderInfo, ICo
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase player, ItemStack stack) {
-		super.onBlockPlacedBy(world, pos, state, player, stack);
+	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase player, ItemStack stack) {
+		super.onBlockPlacedBy(world, x, y, z, player, stack);
 		if (canRotate() && !world.isRemote) {
 			int heading = MathHelper.floor_double(player.rotationYaw * 4.0F / 360.0F + 0.5D) & 3;
-			setRotation(world, pos, directions[heading]);
-			world.markBlockForUpdate(pos);
+			setRotation(world, x, y, z, directions[heading]);
+			world.markBlockForUpdate(x, y, z);
 		}
 	}
 
 	@Override
-	public void onBlockAdded(World world, BlockPos pos, IBlockState state) {
-		super.onBlockAdded(world, pos, state);
+	public void onBlockAdded(World world, int x, int y, int z) {
+		super.onBlockAdded(world, x, y, z);
 		if (tileType != null) {
-			TileEntity tile = world.getTileEntity(pos);
+			TileEntity tile = world.getTileEntity(x, y, z);
 			if (tile instanceof IBlockEventHandler)
 				((IBlockEventHandler) tile).blockPlaced();
 		}
 	}
 
 	@Override
-	public void breakBlock(World world, BlockPos pos, IBlockState state) {
-		TileEntity tile = world.getTileEntity(pos);
+	public void breakBlock(World world, int x, int y, int z, Block a, int b) {
+		TileEntity tile = world.getTileEntity(x, y, z);
 		if (tile != null && tile instanceof IBlockEventHandler)
 			((IBlockEventHandler) tile).blockBroken();
-		super.breakBlock(world, pos, state);
+		super.breakBlock(world, x, y, z, a, b);
 	}
 
 	@Override
-	public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock) {
-		TileEntity tile = world.getTileEntity(pos);
+	public void onNeighborBlockChange(World world, int x, int y, int z, Block b) {
+		TileEntity tile = world.getTileEntity(x, y, z);
 		if (tile != null && tile instanceof IBlockEventHandler)
 			((IBlockEventHandler) tile).neighborChanged();
-		super.onNeighborBlockChange(world, pos, state, neighborBlock);
+		super.onNeighborBlockChange(world, x, y, z, b);
 	};
+
+	@Override
+	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
+		TileEntity tile = world.getTileEntity(x, y, z);
+		if (tile == null || !(tile instanceof LCTile))
+			return false;
+		return ((LCTile) tile).canConnectRedstone(side);
+	}
+
+	@Override
+	public int isProvidingStrongPower(IBlockAccess world, int x, int y, int z, int side) {
+		return isProvidingWeakPower(world, x, y, z, side);
+	}
+
+	@Override
+	public int isProvidingWeakPower(IBlockAccess world, int x, int y, int z, int side) {
+		TileEntity tile = world.getTileEntity(x, y, z);
+		if (tile == null || !(tile instanceof LCTile))
+			return 0;
+		return ((LCTile) tile).getRedstoneOutput(side);
+	}
+
+	public boolean isGettingInput(World world, int x, int y, int z, ForgeDirection side) {
+		return getInputStrength(world, x, y, z, side) > 0;
+	}
+
+	public boolean isGettingAnyInput(World world, int x, int y, int z) {
+		return getBestInputStrength(world, x, y, z) > 0;
+	}
+
+	public int getBestInputStrength(World world, int x, int y, int z) {
+		int best = 0;
+		for (ForgeDirection side : ForgeDirection.values())
+			best = Math.max(best, getInputStrength(world, x, y, z, side));
+		return best;
+	}
+
+	public int getInputStrength(World world, int x, int y, int z, ForgeDirection side) {
+		int dx = x + side.offsetX;
+		int dy = y + side.offsetY;
+		int dz = z + side.offsetZ;
+		int l1 = world.getIndirectPowerLevelTo(dx, dy, dz, side.getOpposite().ordinal());
+		int l2 = world.getBlock(dx, dy, dz) == Blocks.redstone_wire ? world.getBlockMetadata(dx, dy, dz) : 0;
+		int l3 = world.getBlock(dx, dy, dz) == Blocks.redstone_torch ? 15 : 0;
+		return Math.max(l1, Math.max(l2, l3));
+	}
 
 	@Override
 	public IBlockRenderInfo renderInfoBlock() {
