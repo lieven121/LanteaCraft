@@ -135,6 +135,16 @@ public class TileStargateBase extends LCMultiblockTile implements IBlockSkinnabl
 			new BlockFilter(Blocks.air), new BlockFilter(LCRuntime.runtime.blocks().stargateRingBlock.getBlock(), 2),
 			new BlockFilter(LCRuntime.runtime.blocks().stargateRingBlock.getBlock(), 3),
 			new BlockFilter(LCRuntime.runtime.blocks().stargateBaseBlock.getBlock(), 1) });
+	
+	public final static StructureConfiguration noxStructure = new SGStructureConfig(new BlockFilter[] {
+			new BlockFilter(Blocks.air), new BlockFilter(LCRuntime.runtime.blocks().stargateRingBlock.getBlock(), 6),
+			new BlockFilter(LCRuntime.runtime.blocks().stargateRingBlock.getBlock(), 7),
+			new BlockFilter(LCRuntime.runtime.blocks().stargateBaseBlock.getBlock(), 3) });
+	
+	public final static StructureConfiguration wraithStructure = new SGStructureConfig(new BlockFilter[] {
+			new BlockFilter(Blocks.air), new BlockFilter(LCRuntime.runtime.blocks().stargateRingBlock.getBlock(), 4),
+			new BlockFilter(LCRuntime.runtime.blocks().stargateRingBlock.getBlock(), 5),
+			new BlockFilter(LCRuntime.runtime.blocks().stargateBaseBlock.getBlock(), 2) });
 
 	/**
 	 * Used to track an entity position and velocity
@@ -196,7 +206,22 @@ public class TileStargateBase extends LCMultiblockTile implements IBlockSkinnabl
 	private static final double stargateChevronMoveTime = 5.0d;
 	private static final double stargateConnectTimeout = 200.0d;
 	private static final double stargateEstablishedTimeout = 2400.0d;
-	private static final double stargateIrisSpeed = 40.0d;
+	private static final double stargateVortexTime = 20.0d;
+	private static double stargateIrisSpeed = 40.0d;
+	
+	private double getStargateSpeed() {
+		StateMap state = this.clientRenderState;
+	
+		if (state.get("iris", false)) {
+			if (state.get("iris-type", "").equals("mechanical")) 
+				stargateIrisSpeed = 60.0d;
+			 else if (state.get("iris-type", "").equals("energy")) 
+				stargateIrisSpeed = 2.0d;
+			 else 
+				stargateIrisSpeed = 32.0d;
+		}
+		return stargateIrisSpeed;
+	}
 
 	private ArrayDeque<StargateCommand> commandQueue = new ArrayDeque<StargateCommand>();
 	private StargateCommand command;
@@ -272,11 +297,15 @@ public class TileStargateBase extends LCMultiblockTile implements IBlockSkinnabl
 	public StructureConfiguration getConfiguration() {
 		if (getStargateType() == StargateType.STANDARD)
 			return milkyStructure;
-		else
+		else if (getStargateType() == StargateType.ATLANTIS)
 			return atlStructure;
-
+		else if (getStargateType() == StargateType.NOX)
+			return noxStructure;
+		else 
+			return wraithStructure;
+		
 	}
-
+	
 	@Override
 	public void thinkMultiblock() {
 		if (getState() == MultiblockState.NONE) {
@@ -324,20 +353,20 @@ public class TileStargateBase extends LCMultiblockTile implements IBlockSkinnabl
 			}
 			break;
 		case DISCONNECT:
-			clientAnimationQueue.push(new ChevronReleaseAnimation(9, true));
-			clientAnimationQueue.push(new RingSpinAnimation(stargateSpinTime, 0.0d, 0.0d, true));
+			clientAnimationQueue.add(new ChevronReleaseAnimation(9, true));
+			clientAnimationQueue.add(new RingSpinAnimation(stargateSpinTime, 0.0d, 0.0d, true));
 			clientEngagedGlyphs.clear();
 			break;
 		case DISENGAGE:
 			if (clientEngagedGlyphs.size() > 0) {
-				clientAnimationQueue.push(new ChevronMoveAnimation(stargateChevronMoveTime,
+				clientAnimationQueue.add(new ChevronMoveAnimation(stargateChevronMoveTime,
 						clientChevronQueue[clientEngagedGlyphs.size() - 1], 0.0d, 0.0d, true));
 				clientEngagedGlyphs.remove(clientEngagedGlyphs.size() - 1);
 			}
 			break;
 		case ENGAGE:
 			clientEngagedGlyphs.add(clientCurrentGlyph);
-			clientAnimationQueue.push(new ChevronMoveAnimation(stargateChevronMoveTime,
+			clientAnimationQueue.add(new ChevronMoveAnimation(stargateChevronMoveTime,
 					clientChevronQueue[clientEngagedGlyphs.size() - 1], 1.0d / 8.0d, 0.5d, true));
 			break;
 		case SPIN:
@@ -345,17 +374,17 @@ public class TileStargateBase extends LCMultiblockTile implements IBlockSkinnabl
 			int symbolIndex = StargateCharsetHelper.singleton().index((char) clientCurrentGlyph);
 			double symbolRotation = symbolIndex * (360.0 / 38.0d);
 			double aangle = MathUtils.normaliseAngle(symbolRotation);
-			clientAnimationQueue.push(new RingSpinAnimation(stargateSpinTime, 0.0d, aangle, true));
+			clientAnimationQueue.add(new RingSpinAnimation(stargateSpinTime, 0.0d, aangle, true));
 			for (int i = 0; i < clientEngagedGlyphs.size() - 1; i++) {
 				tileRenderState().set("chevron-dist-" + clientChevronQueue[i], 1.0d / 8.0d);
 				tileRenderState().set("chevron-light-" + clientChevronQueue[i], 0.5d);
 			}
 			break;
 		case CLOSEIRIS:
-			clientAnimationQueue.push(new IrisMoveAnimation(stargateIrisSpeed, 1.0f));
+			clientAnimationQueue.addFirst(new IrisMoveAnimation(stargateIrisSpeed, 1.0f));
 			break;
 		case OPENIRIS:
-			clientAnimationQueue.push(new IrisMoveAnimation(stargateIrisSpeed, 0.0f));
+			clientAnimationQueue.addFirst(new IrisMoveAnimation(stargateIrisSpeed, 0.0f));
 			break;
 		default:
 			break;
