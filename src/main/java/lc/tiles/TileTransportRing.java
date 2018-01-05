@@ -289,6 +289,20 @@ public class TileTransportRing extends LCMultiblockTile implements ITransportRin
 			}
 		return null;
 	}
+	
+	private TileTransportRing thinkServerFindSlave(int dir) {
+		Chunk chunk = getWorldObj().getChunkFromBlockCoords(xCoord, zCoord);
+		for (Object o : chunk.chunkTileEntityMap.values())
+			if (o instanceof TileTransportRing) {
+				TileTransportRing tile = (TileTransportRing) o;
+				if (tile.getState() == MultiblockState.FORMED && tile != this && !tile.busy()) {
+					LCLog.debug("Found Transport ring at [%s, %s, %s]", tile.xCoord, tile.yCoord, tile.zCoord);
+					if ((tile.yCoord > yCoord && dir == 1) || (tile.yCoord < yCoord && dir == -1) || (tile.yCoord == yCoord && dir == 0) )
+					return tile;
+				}
+			}
+		return null;
+	}
 
 	private void thinkServerTransport(TileTransportRing ring) {
 		thinkServerDoDispatch(ring);
@@ -446,6 +460,21 @@ public class TileTransportRing extends LCMultiblockTile implements ITransportRin
 		if (busy())
 			return;
 		TileTransportRing slave = thinkServerFindSlave();
+		if (slave != null) {
+			commandQueue.add(new TransportRingCommand(TransportRingCommandType.ENGAGE, 60.0d, slave));
+			commandQueue.add(new TransportRingCommand(TransportRingCommandType.TRANSPORT, 30.0d, slave));
+			commandQueue.add(new TransportRingCommand(TransportRingCommandType.DISENGAGE, 40.0d, slave));
+		}
+	}
+	
+
+	@Tag(name = "ComputerCallable")
+	public void activate(int dir) {//-1 is down // 0 is same level // 1 is up
+		if (getState() != MultiblockState.FORMED)
+			return;
+		if (busy())
+			return;
+		TileTransportRing slave = thinkServerFindSlave(dir);
 		if (slave != null) {
 			commandQueue.add(new TransportRingCommand(TransportRingCommandType.ENGAGE, 60.0d, slave));
 			commandQueue.add(new TransportRingCommand(TransportRingCommandType.TRANSPORT, 30.0d, slave));
