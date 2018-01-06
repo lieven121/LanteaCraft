@@ -25,7 +25,7 @@ public class BiomeAbydosDesert extends BiomeGenBase implements IBiomeDefinition 
 	 *            The biome ID to use
 	 */
 	public BiomeAbydosDesert(int biomeId) {
-		super(biomeId, false);
+		super(biomeId, true);
 		topBlock = Blocks.sand;
 		biomeName = getName();
 		fillerBlock = Blocks.sand;
