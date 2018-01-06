@@ -152,7 +152,7 @@ public class TileStargateBaseRenderer extends LCTileRenderer {
 			
 			GL11.glPushMatrix();
 			
-			GL11.glRotated(360.0 / irBladeSize * i , 0.0, 0.0, 1.0);
+			GL11.glRotated(360.0 / irBladeSize * i + 9, 0.0, 0.0, 1.0);
 			double tiltAngle = progress * 60;
 			double radius = ModelStargate.ringMidRadius;
 			double longW = ModelStargate.ringMidRadius, shortW = ModelStargate.ringInnerRadius;
