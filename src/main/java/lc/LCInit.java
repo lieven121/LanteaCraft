@@ -273,6 +273,11 @@ public class LCInit {
 		IDefinitionReference ringBlock = blocks.stargateRingBlock.ref();
 		IDefinitionReference chevronBlock = blocks.stargateRingBlock.ref().pushAll(1, 1);
 		IDefinitionReference baseBlock = blocks.stargateBaseBlock.ref();
+		
+		IDefinitionReference ringBlockP = blocks.stargateRingBlock.ref().pushAll(1, 2);
+		IDefinitionReference chevronBlockP = blocks.stargateRingBlock.ref().pushAll(1, 3);
+		IDefinitionReference baseBlockP = blocks.stargateBaseBlock.ref().pushAll(1, 2);
+		
 		IDefinitionReference naquadahIngot = items.lanteaAlloyItem.ref().pushAll(1, OreType.NAQUADAH.ordinal());
 		IDefinitionReference coreCrystal = items.lanteaCraftingItem.ref().pushAll(1,
 				ItemCraftingReagent.ReagentList.CORECRYSTAL.ordinal());
@@ -285,6 +290,9 @@ public class LCInit {
 		ItemStack enderPearl = new ItemStack(net.minecraft.init.Items.ender_pearl, 1);
 		ItemStack ironIngot = new ItemStack(net.minecraft.init.Items.iron_ingot, 1);
 		ItemStack redstone = new ItemStack(net.minecraft.init.Items.redstone, 1);
+		ItemStack lapis = new ItemStack(net.minecraft.init.Items.dye, 1, 4);
+		//ItemStack lCItemStack. = new ItemStack(net.minecraft.init.Items.redstone, 1);
+		
 
 		recipes.stargateBase = new SimpleRecipeDefinition("stargate_base", RecipeType.SHAPED, baseBlock, "010232454",
 				cSandstone, redstone, naquadahIngot, eyeOfEnder, ironIngot, coreCrystal);
@@ -297,7 +305,21 @@ public class LCInit {
 		recipes.stargateChevron = new SimpleRecipeDefinition("stargate_chevron", RecipeType.SHAPED, chevronBlock,
 				"010232454", cSandstone, glowstone, naquadahIngot, enderPearl, ironIngot, redstone);
 		runtime.registries().recipes().addRecipe(recipes.stargateChevron);
+		
+		
+		recipes.stargateBasePegasus = new SimpleRecipeDefinition("stargate_base_pegasus", RecipeType.SHAPED, baseBlockP, "010232454",
+				lapis, redstone, naquadahIngot, eyeOfEnder, ironIngot, coreCrystal);
+		runtime.registries().recipes().addRecipe(recipes.stargateBasePegasus);
 
+		recipes.stargateRingPegasus = new SimpleRecipeDefinition("stargate_ring_pegasus", RecipeType.SHAPED, ringBlockP, "010222000",
+				ironIngot, lapis, naquadahIngot);
+		runtime.registries().recipes().addRecipe(recipes.stargateRingPegasus);
+
+		recipes.stargateChevronPegasus = new SimpleRecipeDefinition("stargate_chevron_pegasus", RecipeType.SHAPED, chevronBlockP,
+				"010232454", lapis, glowstone, naquadahIngot, enderPearl, ironIngot, redstone);
+		runtime.registries().recipes().addRecipe(recipes.stargateChevronPegasus);
+
+		
 		recipes.frame = new SimpleRecipeDefinition("frame", RecipeType.SHAPED, frameBlock, " 0  010  0 ", ironIngot,
 				cSandstone);
 		runtime.registries().recipes().addRecipe(recipes.frame);
@@ -310,8 +332,8 @@ public class LCInit {
 				DecorBlockTypes.LantDecSteel.idx);
 		IDefinitionReference decorGoaGold = blocks.lanteaDecorBlock.ref().pushAll(1, DecorBlockTypes.GoaGold.idx);
 		IDefinitionReference decorGoaPatGold = blocks.lanteaDecorBlock.ref().pushAll(1, DecorBlockTypes.GoaDecGold.idx);
-		IDefinitionReference decorLantDoor = blocks.lanteaDoor.ref().pushAll(0);
-		IDefinitionReference decorGoauldDoor = blocks.lanteaDoor.ref().pushAll(1);
+		IDefinitionReference decorLantDoor = blocks.lanteaDoor.ref().pushAll(0,0);
+		IDefinitionReference decorGoauldDoor = blocks.lanteaDoor.ref().pushAll(1,1);
 		IDefinitionReference naquadah = items.lanteaOreItem.ref().pushAll(1, OreType.NAQUADAH.ordinal());
 
 		ItemStack blockGold = new ItemStack(net.minecraft.init.Blocks.gold_block, 1);

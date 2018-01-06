@@ -43,6 +43,12 @@ public class Recipes {
 	public IRecipeDefinition stargateChevron;
 	/** Frame block */
 	public IRecipeDefinition frame;
+	/** Stargate Pegasus base crafting recipe */
+	public IRecipeDefinition stargateBasePegasus;
+	/** Stargate Pegasus ring crafting recipe */
+	public IRecipeDefinition stargateRingPegasus;
+	/** Stargate Pegasus chevron crafting recipe */
+	public IRecipeDefinition stargateChevronPegasus;
 
 	/** Decorator crafting recipe */
 	public IRecipeDefinition decorCrafterRecipe;
