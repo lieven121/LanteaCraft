@@ -8,15 +8,18 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import lc.LCRuntime;
 import lc.api.components.ComponentType;
 import lc.api.defs.Definition;
+import lc.common.LCLog;
 import lc.common.base.LCBlock;
 import lc.common.configuration.xml.ComponentConfig;
 import lc.items.ItemLanteaDoor;
@@ -36,7 +39,7 @@ public class BlockLanteaDoor extends LCBlock {
 	/** Default constructor */
 	public BlockLanteaDoor() {
 		super(Material.ground);
-		setHardness(5.0f);
+		setHardness(1.0f);
 		setOpaque(false).setProvidesInventory(false).setProvidesTypes(true).setCanRotate(true);
 	}
 
@@ -53,11 +56,36 @@ public class BlockLanteaDoor extends LCBlock {
 	public boolean canPlaceBlockAt(World w, int x, int y, int z) {
 		if (w.getBlock(x, y - 1, z) == this)
 			return true;
-		if (!World.doesBlockHaveSolidTopSurface(w, x, y - 1, z))
+		Block block = w.getBlock(x, y+1, z);
+		if (!World.doesBlockHaveSolidTopSurface(w, x, y - 1, z) || ! block.isReplaceable(w, x, y+1, z) )
 			return false;
 		return w.isAirBlock(x, y, z) || super.canPlaceBlockAt(w, x, y, z);
 	}
-
+	
+	@Override
+	public void onBlockAdded(World world, int x, int y, int z){
+		Block block = world.getBlock(x, y, z);
+		int metadata = block.getDamageValue(world, x, y, z);
+		
+		TileLanteaDoor te = (TileLanteaDoor) world.getTileEntity(x, y-1, z);
+		TileLanteaDoor thisTe = (TileLanteaDoor) world.getTileEntity(x, y, z);
+		
+		if (te instanceof TileLanteaDoor) {
+			if (!te.getRelativePosition()) { //is top block
+				thisTe.setRotation(te.getRotation());
+				LCLog.debug(te.getRotation());
+				thisTe.setRelativePosition(true);
+				
+			} else {
+				thisTe.setRelativePosition(false);
+				world.setBlock(x, y+1, z, block, metadata, 3);
+			}
+		} else {
+			thisTe.setRelativePosition(false);
+			world.setBlock(x, y+1, z, block, metadata, 3);
+		}
+	}
+	
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer p, int par6, float par7, float par8,
 			float par9) {
@@ -68,6 +96,21 @@ public class BlockLanteaDoor extends LCBlock {
 			return true;
 		doorTile.openOrCloseDoor();
 		return true;
+	}
+	
+	public void	onBlockDestroyedByPlayer(World world, int x, int y, int z, int meta) {
+		TileLanteaDoor thisTe = (TileLanteaDoor) world.getTileEntity(x, y, z);
+		TileLanteaDoor te = (TileLanteaDoor) world.getTileEntity(x, y +1, z);
+		TileLanteaDoor te2 = (TileLanteaDoor) world.getTileEntity(x, y -1, z);
+		if (te instanceof TileLanteaDoor)
+			if (te.getRelativePosition())
+				//world.destroyBlockInWorldPartially(x, y + 1, z, 5000, 5000);
+				world.setBlockToAir(x, y + 1, z);
+		if (te2 instanceof TileLanteaDoor)
+			if (!te2.getRelativePosition())
+				//world.destroyBlockInWorldPartially(x, y - 1, z, 5000, 5000);
+				world.setBlockToAir(x, y - 1, z);
+		dropBlockAsItem(world,x, y, z, 0, 0);
 	}
 
 	public Item getItemDropped(int metadata, Random random, int fortune) {

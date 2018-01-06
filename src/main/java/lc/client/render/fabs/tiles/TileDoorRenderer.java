@@ -34,7 +34,11 @@ public class TileDoorRenderer extends LCTileRenderer {
 
 		ResourceLocation whatTex = ResourceAccess.getNamedResource(ResourceAccess.formatResourceName(
 				"textures/blocks/%s_door_bottom_${TEX_QUALITY}.png", doorType));
-		if (!door.hasBlockAbove())
+	/*	if (!door.hasBlockAbove())
+			whatTex = ResourceAccess.getNamedResource(ResourceAccess.formatResourceName(
+					"textures/blocks/%s_door_top_${TEX_QUALITY}.png", doorType));
+		renderer.bind(whatTex);*/
+		if (door.getRelativePosition())
 			whatTex = ResourceAccess.getNamedResource(ResourceAccess.formatResourceName(
 					"textures/blocks/%s_door_top_${TEX_QUALITY}.png", doorType));
 		renderer.bind(whatTex);
@@ -48,8 +52,10 @@ public class TileDoorRenderer extends LCTileRenderer {
 
 		float w = 0.085f;
 		float d0 = 0.5f - w, d1 = 0.5f + w;
-
 		GL11.glTranslatef(0.5f, 0.0f, 0.5f);
+		door.updateRotation();
+	/*	if (door.getRelativePosition() && (worldObj.getTileEntity(xCoord, yCoord - 1, zCoord) instanceof TileLanteaDoor))
+			setRotation(((TileLanteaDoor) worldObj.getTileEntity(xCoord, yCoord - 1, zCoord)).getRotation());*/
 		GL11.glRotatef(Orientations.from(tile.getRotation()).angle(), 0, 1, 0);
 		GL11.glTranslatef(-0.5f, 0.0f, -0.5f);
 
