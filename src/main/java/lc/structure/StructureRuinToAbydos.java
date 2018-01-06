@@ -89,7 +89,7 @@ public class StructureRuinToAbydos {
 	}};
 	
 	 static int height = structure.length;
-	 static int width = 1;
+	 static int width = 9;
 	 static int length = 9; //TODO 
 	 
 	 static BlockFilterWithRot[] blocks = { new BlockFilterWithRot(Blocks.air) , new BlockFilterWithRot(Blocks.sandstone,2) , new BlockFilterWithRot(Blocks.sandstone,1), new BlockFilterWithRot(Blocks.stone_slab,1),

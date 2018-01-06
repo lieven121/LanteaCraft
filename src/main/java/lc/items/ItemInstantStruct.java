@@ -23,6 +23,7 @@ import lc.common.base.LCTile;
 import lc.common.configuration.xml.ComponentConfig;
 import lc.common.resource.ResourceAccess;
 import lc.common.util.ScanningHelper;
+import lc.structure.StructureAbydosPyramid;
 import lc.structure.StructureDefault;
 import lc.structure.StructureRuinToAbydos;
 import lc.structure.StructureSand;
@@ -56,8 +57,8 @@ public class ItemInstantStruct extends LCItem {
 			float p_77648_8_, float p_77648_9_, float p_77648_10_) {
 		int[] convertVal = {3,4,2,5};
 		ForgeDirection direction = ForgeDirection.values()[convertVal[MathHelper.floor_double((double)(player.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3]];
-			StructureRuinToAbydos.generateStructureCenter(world, x, y-StructureRuinToAbydos.getHeigth()+2, z, direction);
-			
+			//StructureRuinToAbydos.generateStructureCenter(world, x, y-StructureRuinToAbydos.getHeigth()+2, z, direction);
+			StructureAbydosPyramid.generateStructureCenter(world, x, y-6, z, direction);
 			/*if (world.getBlock(x, y, z) instanceof LCBlock) {
 				//TileStargateBase te = (TileStargateBase) world.getTileEntity(x,y,z);
 				if (!world.isRemote) {

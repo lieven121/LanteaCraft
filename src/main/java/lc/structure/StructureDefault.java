@@ -45,19 +45,25 @@ public class StructureDefault {
 
 						
 					//	centerX-structure.length/2+structure.length
-						if (structure[y][z][x] == -1) continue;
-						BlockFilter filter = blocks[structure[y][z][x]];
+						
+						
+						//LCLog.debug(x);
+						int xRot = x,yRot = y,zRot = z;
+						int xBlock = x,yBlock = y,zBlock = z;
+						if (rotation == ForgeDirection.SOUTH){ zBlock = structure[y].length-z-1; }
+						if (rotation == ForgeDirection.EAST) { zRot=xRot; xRot=z; xBlock = structure[y][z].length-x-1;  zBlock = structure[y].length-z-1; }
+						if (rotation == ForgeDirection.WEST) { zRot=xRot; xRot=z; }
+						
+						
+						if (structure[yBlock][zBlock][xBlock] == -1) continue;
+						BlockFilter filter = blocks[structure[yBlock][zBlock][xBlock]];
 						if (filter == null) continue;
 						Block block = filter.getBlock();
 						int metadata = Math.max(0, filter.getMetadata());
-						//LCLog.debug(x);
-						int xRot = x,yRot = y,zRot = z;
-						if (rotation == ForgeDirection.SOUTH) zRot = -z;
-						if (rotation == ForgeDirection.EAST) { zRot=xRot; xRot=-z; }
-						if (rotation == ForgeDirection.WEST) { zRot=xRot; xRot=z; }
+						
 						//TODO rotate around same axys
 						if( block != null) {
-							world.setBlock(worldX+xRot, worldY+yRot, worldZ+zRot, block, metadata,0);
+							world.setBlock(worldX+xRot, worldY+yRot, worldZ+zRot, block, metadata,3);
 			
 							if (block instanceof LCBlock) {
 								

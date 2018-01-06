@@ -50,5 +50,8 @@ public class Blocks {
 
 	/** Lantea global door item */
 	public IContainerDefinition lanteaDoor;
+	
+	
+	public IContainerDefinition abydosRuin;
 
 }
