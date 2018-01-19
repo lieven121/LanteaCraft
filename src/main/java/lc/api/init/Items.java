@@ -38,5 +38,7 @@ public class Items {
 
 	/** Staff weapon */
 	public IContainerDefinition goauldStaffWeapon;
-
+	
+	public IContainerDefinition instantGate;
+	public IContainerDefinition instantStruct;
 }
