@@ -202,7 +202,6 @@ public class EntityStaffProjectile extends Entity {
 										.sendPacket(new S2BPacketChangeGameState(6, 0.0F));
 							}
 						}
-
 						this.playSound("random.bowhit", 1.0F, 1.2F / (this.rand.nextFloat() * 0.2F + 0.9F));
 					} else {
 						this.motionX *= -0.10000000149011612D;

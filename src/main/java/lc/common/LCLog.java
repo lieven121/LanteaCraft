@@ -119,6 +119,7 @@ public class LCLog {
 			l.log(l0, s0, z);
 		else
 			l.log(l0, s0);
+			
 	}
 
 	private static void writeStream(PrintStream s, Level l0, String s0, Throwable z) {

@@ -25,7 +25,7 @@ public class BiomeAbydosDesert extends BiomeGenBase implements IBiomeDefinition 
 	 *            The biome ID to use
 	 */
 	public BiomeAbydosDesert(int biomeId) {
-		super(biomeId, false);
+		super(biomeId, true);
 		topBlock = Blocks.sand;
 		biomeName = getName();
 		fillerBlock = Blocks.sand;
@@ -34,12 +34,18 @@ public class BiomeAbydosDesert extends BiomeGenBase implements IBiomeDefinition 
 		theBiomeDecorator.deadBushPerChunk = -999;
 		theBiomeDecorator.reedsPerChunk = -999;
 		theBiomeDecorator.cactiPerChunk = -999;
-		spawnableCreatureList.clear();
+		this.setDisableRain();
+		this.temperature=1.0F;
+        this.spawnableMonsterList.clear();
+        this.spawnableCreatureList.clear();
+        this.spawnableWaterCreatureList.clear();
+        this.spawnableCaveCreatureList.clear();
+		//TODO add jafa
 	}
 
 	@Override
 	public String getName() {
-		return "abydos_desert";
+		return "abydos desert";
 	}
 
 	@Override
@@ -55,7 +61,12 @@ public class BiomeAbydosDesert extends BiomeGenBase implements IBiomeDefinition 
 			int l = par4 + par2Random.nextInt(16) + 8;
 			WorldGenDesertWells worldgendesertwells = new WorldGenDesertWells();
 			worldgendesertwells.generate(par1World, par2Random, k, par1World.getHeightValue(k, l) + 1, l);
+			
 		}
 	}
+	   public BiomeGenBase.TempCategory getTempCategory()
+	    {
+	        return BiomeGenBase.TempCategory.WARM;
+	    }
 
 }
