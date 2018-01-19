@@ -115,6 +115,8 @@ public class TileLanteaDoor extends LCTile implements ITileRenderInfo {
 				worldObj.getTileEntity(xCoord, yCoord - 1, zCoord) instanceof TileLanteaDoor);
 		compound.setBoolean("hasBlockAbove",
 				worldObj.getTileEntity(xCoord, yCoord + 1, zCoord) instanceof TileLanteaDoor);
+		if (getRelativePosition() && (worldObj.getTileEntity(xCoord, yCoord - 1, zCoord) instanceof TileLanteaDoor))
+			setRotation(((TileLanteaDoor) worldObj.getTileEntity(xCoord, yCoord - 1, zCoord)).getRotation());
 		markNbtDirty();
 	}
 
@@ -122,7 +124,16 @@ public class TileLanteaDoor extends LCTile implements ITileRenderInfo {
 	public void blockPlaced() {
 		super.blockPlaced();
 		recalculateState();
-	};
+	}
+	
+	/*@Override
+	public void blockBroken() {
+		if(getRelativePosition())
+			worldObj.getTileEntity(xCoord, yCoord, zCoord) instanceof TileLanteaDoor);
+			if (getRelativePosition() && (worldObj.getTileEntity(xCoord, yCoord - 1, zCoord) instanceof TileLanteaDoor))
+				setRotation(((TileLanteaDoor) worldObj.getTileEntity(xCoord, yCoord - 1, zCoord)).getRotation());
+		super.blockBroken();
+	}*/
 
 	@Override
 	public void neighborChanged() {
@@ -133,6 +144,11 @@ public class TileLanteaDoor extends LCTile implements ITileRenderInfo {
 	public void openOrCloseDoor() {
 		setDoorState(!getDoorState());
 	}
+	
+	public void updateRotation() {
+		if (getRelativePosition() && (worldObj.getTileEntity(xCoord, yCoord - 1, zCoord) instanceof TileLanteaDoor))
+			setRotation(((TileLanteaDoor) worldObj.getTileEntity(xCoord, yCoord - 1, zCoord)).getRotation());
+	}
 
 	public void setDoorState(boolean state) {
 		if (getDoorState() == state)
@@ -141,6 +157,7 @@ public class TileLanteaDoor extends LCTile implements ITileRenderInfo {
 			compound = new NBTTagCompound();
 		compound.setBoolean("isOpen", state);
 		markNbtDirty();
+		updateRotation();
 		switch (getRotation()) {
 		case NORTH:
 		case SOUTH:
@@ -168,6 +185,18 @@ public class TileLanteaDoor extends LCTile implements ITileRenderInfo {
 		}
 	}
 
+	public void setRelativePosition(boolean state) {
+		if (compound == null)
+			compound = new NBTTagCompound();
+		compound.setBoolean("isTop", state);
+	}
+	
+	public boolean getRelativePosition() {
+		if (compound == null)
+			compound = new NBTTagCompound();
+		return compound.hasKey("isTop") ? compound.getBoolean("isTop") : false;
+	}
+	
 	public boolean getDoorState() {
 		if (compound == null)
 			compound = new NBTTagCompound();
@@ -196,6 +225,8 @@ public class TileLanteaDoor extends LCTile implements ITileRenderInfo {
 			return ForgeDirection.EAST;
 		case WEST:
 			return ForgeDirection.SOUTH;
+		default:
+			break;
 		}
 		LCLog.fatal("Invalid door state rotation!");
 		return null;
