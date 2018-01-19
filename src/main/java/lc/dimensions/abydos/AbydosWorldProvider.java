@@ -25,7 +25,7 @@ public class AbydosWorldProvider extends WorldProvider {
 		worldChunkMgr = new AbydosChunkManager(abydosBiome, 0);
 		hasNoSky = false;
 	}
-
+	//TODO add sandstorms
 	@Override
 	public IChunkProvider createChunkGenerator() {
 		return new AbydosChunkProvider(worldObj, abydosBiome);

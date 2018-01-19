@@ -16,5 +16,6 @@ public class Biomes {
 
 	/** Abydos desert biome generator */
 	public IBiomeDefinition abydosDesert;
+	public IBiomeDefinition chulakForrest;
 
 }
