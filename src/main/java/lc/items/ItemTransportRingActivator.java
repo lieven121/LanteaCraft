@@ -4,6 +4,7 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import lc.api.components.ComponentType;
@@ -31,20 +32,28 @@ public class ItemTransportRingActivator extends LCItem {
 
 	@Override
 	public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
+		if (!world.isRemote) {
+			TileTransportRing ring = (TileTransportRing) ScanningHelper.findNearestTileEntityOf(world,
+					TileTransportRing.class, (int)player.posX, (int)player.posY, (int)player.posZ, AxisAlignedBB.getBoundingBox(-3, -2, -3, 3, 5, 3));
+			if (ring != null) {
+				ring.activate(player.rotationPitch > 10 ? -1: player.rotationPitch < -10 ? 1 : 0);
+			}
+		}
+		
 		return stack;
 	}
 
 	@Override
 	public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int p_77648_7_,
 			float p_77648_8_, float p_77648_9_, float p_77648_10_) {
-		if (!world.isRemote) {
+	/*	if (!world.isRemote) {
 			TileTransportRing ring = (TileTransportRing) ScanningHelper.findNearestTileEntityOf(world,
 					TileTransportRing.class, x, y, z, AxisAlignedBB.getBoundingBox(-5, -5, -5, 5, 5, 5));
 			if (ring != null) {
 				ring.activate();
 			}
-		}
-		return true;
+		}*/
+		return false;
 	}
 
 	@Override
