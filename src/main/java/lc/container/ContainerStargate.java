@@ -2,6 +2,7 @@ package lc.container;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ICrafting;
+import lc.common.LCLog;
 import lc.common.base.LCContainer;
 import lc.common.base.inventory.FilteredInventory;
 import lc.common.base.inventory.FilteredSlot;
@@ -31,9 +32,17 @@ public class ContainerStargate extends LCContainer {
 		super(256, 208);
 		this.te = tile;
 		filterInventory = (FilteredInventory) te.getInventory();
+		LCLog.debug(te.getInventory());
 		addSlotToContainer(new FilteredSlot(filterInventory, 0, 48, 99, false));
 		addPlayerSlots(player, 48, 123);
 	}
+	
+	/*public ContainerStargate(TileStargateBase tile) {
+		super(256, 208);
+		this.te = tile;
+		filterInventory = (FilteredInventory) te.getInventory();
+		addSlotToContainer(new FilteredSlot(filterInventory, 0, 48, 99, false));
+	}*/
 
 	@Override
 	public void configure(ComponentConfig c) {

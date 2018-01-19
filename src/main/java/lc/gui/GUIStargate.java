@@ -68,9 +68,9 @@ public class GUIStargate extends LCContainerGUI {
 			String address = stargate.getStargateAddress().getAddressString();
 			container.drawAddressString(128, 56, address, 9, "-", "-");
 			container.drawFramedSymbols(128, 8, stargate.getStargateType(), address.toCharArray());
-			IconButton.drawButton(Minecraft.getMinecraft(), "copy", 240, 54, mouseX - container.offsetLeft(), mouseY
+			IconButton.drawButton(Minecraft.getMinecraft(), "copy", 230, 54, mouseX - container.offsetLeft()-10, mouseY
 					- container.offsetTop(), container.isMouseDown(), 0.75, 1.0f);
-			if (IconButton.buttonHovered(240, 54, mouseX - container.offsetLeft(), mouseY - container.offsetTop(), 1.0))
+			if (IconButton.buttonHovered(230, 54, mouseX - container.offsetLeft(), mouseY - container.offsetTop(), 1.0))
 				container.drawTooltip(I18n.format("lc.interface.clipboard.write"), mouseX - container.offsetLeft(),
 						mouseY - container.offsetTop());
 		}
@@ -83,7 +83,7 @@ public class GUIStargate extends LCContainerGUI {
 		@Override
 		protected void mouseMovedOrUp(LCContainerGUI container, int x, int y, int mouseButton) {
 			if (mouseButton == 0 || mouseButton == 1) {
-				if (IconButton.buttonDepressed(240, 54, x - container.offsetLeft(), y - container.offsetTop(),
+				if (IconButton.buttonDepressed(230, 54, x - container.offsetLeft()-10, y - container.offsetTop(),
 						container.isMouseDown(), 1.0)) {
 					IStargateAccess stargate = (IStargateAccess) container.getTile();
 					String address = stargate.getStargateAddress().getAddressString();
