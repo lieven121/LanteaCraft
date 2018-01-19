@@ -4,7 +4,9 @@ import java.util.Random;
 
 import lc.api.components.RecipeType;
 import lc.api.defs.IDefinitionReference;
+import lc.api.init.Biomes;
 import lc.api.init.Blocks;
+import lc.api.init.Dimensions;
 import lc.api.init.Entities;
 import lc.api.init.Interfaces;
 import lc.api.init.Items;
@@ -12,6 +14,8 @@ import lc.api.init.Recipes;
 import lc.api.init.Structures;
 import lc.api.jit.AnyPredicate;
 import lc.api.world.OreType;
+import lc.biomes.BiomeAbydosDesert;
+import lc.biomes.BiomeChulakForrest;
 import lc.blocks.BlockBrazier;
 import lc.blocks.BlockConfigurator;
 import lc.blocks.BlockDHD;
@@ -32,15 +36,19 @@ import lc.common.impl.registry.RecipeProxy;
 import lc.common.impl.registry.SimpleRecipeDefinition;
 import lc.common.impl.registry.StructureDefinition;
 import lc.dimensions.any.LCOreDecorator;
+import lc.dimensions.chulak.ChulakDimension;
 import lc.entity.EntityStaffProjectile;
 import lc.generation.AbydosPyramid;
 import lc.generation.AbydosPyramid.AbydosPyramidFeature;
 import lc.generation.SurfaceStargate;
 import lc.generation.SurfaceStargate.SurfaceStargateFeature;
+import lc.dimensions.abydos.AbydosDimension;
 import lc.items.ItemCraftingReagent;
 import lc.items.ItemDecorator;
 import lc.items.ItemGDO;
 import lc.items.ItemGlasses;
+import lc.items.ItemInstantGate;
+import lc.items.ItemInstantStruct;
 import lc.items.ItemIrisUpgrade;
 import lc.items.ItemLanteaAlloyIngot;
 import lc.items.ItemLanteaOre;
@@ -89,6 +97,10 @@ public class LCInit {
 		Recipes recipes = runtime.recipes();
 		Structures structures = runtime.structures();
 		Interfaces interfaces = runtime.interfaces();
+		Biomes biomes = runtime.biomes();
+		final int abysdosID = 4;
+		final int chulakID = 5;
+		Dimensions dimensions = runtime.dimensions();
 
 		/* Initialize game blocks and items */
 		blocks.stargateRingBlock = DefinitionWrapperProvider.provide(BlockStargateRing.class);
@@ -115,6 +127,8 @@ public class LCInit {
 		items.lanteaTransportRingActivator = DefinitionWrapperProvider.provide(ItemTransportRingActivator.class);
 		items.lanteaPortableDHD = DefinitionWrapperProvider.provide(ItemPortableDHD.class);
 		items.goauldStaffWeapon = DefinitionWrapperProvider.provide(ItemStaff.class);
+		items.instantGate = DefinitionWrapperProvider.provide(ItemInstantGate.class);
+		items.instantStruct = DefinitionWrapperProvider.provide(ItemInstantStruct.class);
 
 		entities.staffProjectile = DefinitionWrapperProvider.provide(EntityStaffProjectile.class);
 
@@ -132,7 +146,7 @@ public class LCInit {
 					Random rng = (Random) t[1];
 					World world = (World) t[0];
 					int x = (Integer) t[2], y = (Integer) t[3];
-					if (world.provider.dimensionId != 0)
+					if (world.provider.dimensionId != 0 & world.provider.dimensionId != abysdosID)
 						return false;
 					if (x % 16 != 0 || y % 16 != 0)
 						return false;
@@ -166,7 +180,7 @@ public class LCInit {
 		structures.decoratorNaquadahOre = new LCOreDecorator(OreType.NAQUADAH, blocks.lanteaOreBlock.ref()) {
 			@Override
 			public boolean canGenerateAt(World world, Random rng, int x, int z) {
-				if (world.provider.dimensionId != 0)
+				if (world.provider.dimensionId != 0 & world.provider.dimensionId != abysdosID)
 					return false;
 				if (x % 16 != 0 || z % 16 != 0)
 					return false;
@@ -185,6 +199,12 @@ public class LCInit {
 		runtime.registries().interfaces().addDefinition(interfaces.dhdUI);
 		runtime.registries().interfaces().addDefinition(interfaces.dhdPortableUI);
 		runtime.registries().interfaces().addDefinition(interfaces.gdoUI);
+		
+		
+		biomes.abydosDesert = new BiomeAbydosDesert(82);
+		biomes.chulakForrest = new BiomeChulakForrest(83);
+		dimensions.abydosDimension = new AbydosDimension(abysdosID, abysdosID);
+		dimensions.chulakDimension = new ChulakDimension(chulakID, chulakID);
 
 	}
 
@@ -253,6 +273,11 @@ public class LCInit {
 		IDefinitionReference ringBlock = blocks.stargateRingBlock.ref();
 		IDefinitionReference chevronBlock = blocks.stargateRingBlock.ref().pushAll(1, 1);
 		IDefinitionReference baseBlock = blocks.stargateBaseBlock.ref();
+		
+		IDefinitionReference ringBlockP = blocks.stargateRingBlock.ref().pushAll(1, 2);
+		IDefinitionReference chevronBlockP = blocks.stargateRingBlock.ref().pushAll(1, 3);
+		IDefinitionReference baseBlockP = blocks.stargateBaseBlock.ref().pushAll(1, 1);
+		
 		IDefinitionReference naquadahIngot = items.lanteaAlloyItem.ref().pushAll(1, OreType.NAQUADAH.ordinal());
 		IDefinitionReference coreCrystal = items.lanteaCraftingItem.ref().pushAll(1,
 				ItemCraftingReagent.ReagentList.CORECRYSTAL.ordinal());
@@ -265,6 +290,9 @@ public class LCInit {
 		ItemStack enderPearl = new ItemStack(net.minecraft.init.Items.ender_pearl, 1);
 		ItemStack ironIngot = new ItemStack(net.minecraft.init.Items.iron_ingot, 1);
 		ItemStack redstone = new ItemStack(net.minecraft.init.Items.redstone, 1);
+		ItemStack lapis = new ItemStack(net.minecraft.init.Items.dye, 1, 4);
+		//ItemStack lCItemStack. = new ItemStack(net.minecraft.init.Items.redstone, 1);
+		
 
 		recipes.stargateBase = new SimpleRecipeDefinition("stargate_base", RecipeType.SHAPED, baseBlock, "010232454",
 				cSandstone, redstone, naquadahIngot, eyeOfEnder, ironIngot, coreCrystal);
@@ -277,7 +305,21 @@ public class LCInit {
 		recipes.stargateChevron = new SimpleRecipeDefinition("stargate_chevron", RecipeType.SHAPED, chevronBlock,
 				"010232454", cSandstone, glowstone, naquadahIngot, enderPearl, ironIngot, redstone);
 		runtime.registries().recipes().addRecipe(recipes.stargateChevron);
+		
+		
+		recipes.stargateBasePegasus = new SimpleRecipeDefinition("stargate_base_pegasus", RecipeType.SHAPED, baseBlockP, "010232454",
+				lapis, redstone, naquadahIngot, eyeOfEnder, ironIngot, coreCrystal);
+		runtime.registries().recipes().addRecipe(recipes.stargateBasePegasus);
 
+		recipes.stargateRingPegasus = new SimpleRecipeDefinition("stargate_ring_pegasus", RecipeType.SHAPED, ringBlockP, "010222000",
+				ironIngot, lapis, naquadahIngot);
+		runtime.registries().recipes().addRecipe(recipes.stargateRingPegasus);
+
+		recipes.stargateChevronPegasus = new SimpleRecipeDefinition("stargate_chevron_pegasus", RecipeType.SHAPED, chevronBlockP,
+				"010232454", lapis, glowstone, naquadahIngot, enderPearl, ironIngot, redstone);
+		runtime.registries().recipes().addRecipe(recipes.stargateChevronPegasus);
+
+		
 		recipes.frame = new SimpleRecipeDefinition("frame", RecipeType.SHAPED, frameBlock, " 0  010  0 ", ironIngot,
 				cSandstone);
 		runtime.registries().recipes().addRecipe(recipes.frame);
@@ -290,8 +332,8 @@ public class LCInit {
 				DecorBlockTypes.LantDecSteel.idx);
 		IDefinitionReference decorGoaGold = blocks.lanteaDecorBlock.ref().pushAll(1, DecorBlockTypes.GoaGold.idx);
 		IDefinitionReference decorGoaPatGold = blocks.lanteaDecorBlock.ref().pushAll(1, DecorBlockTypes.GoaDecGold.idx);
-		IDefinitionReference decorLantDoor = blocks.lanteaDoor.ref().pushAll(0);
-		IDefinitionReference decorGoauldDoor = blocks.lanteaDoor.ref().pushAll(1);
+		IDefinitionReference decorLantDoor = blocks.lanteaDoor.ref().pushAll(0,0);
+		IDefinitionReference decorGoauldDoor = blocks.lanteaDoor.ref().pushAll(1,1);
 		IDefinitionReference naquadah = items.lanteaOreItem.ref().pushAll(1, OreType.NAQUADAH.ordinal());
 
 		ItemStack blockGold = new ItemStack(net.minecraft.init.Blocks.gold_block, 1);

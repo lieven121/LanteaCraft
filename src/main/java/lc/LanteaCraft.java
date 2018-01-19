@@ -32,11 +32,13 @@ public class LanteaCraft {
 	public static volatile LanteaCraft instance;
 
 	/** Default constructor */
+	private Object receiveIMC2 = this;
 	public LanteaCraft() {
 		LanteaCraft.instance = this;
+		receiveIMC2 = this;
 		FMLRelaunchLog.log(Level.INFO, "LanteaCraft ready for action!");
 	}
-
+	
 	/**
 	 * Handler for FML preinit event
 	 *
