@@ -3,6 +3,7 @@ package lc.server.world;
 import java.util.Iterator;
 
 import lc.LCRuntime;
+import lc.common.LCLog;
 import lc.common.util.math.Facing3;
 import lc.common.util.math.Trans3;
 import lc.common.util.math.Vector3;
@@ -18,6 +19,7 @@ import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.network.ForgeMessage.DimensionRegisterMessage;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class TeleportationHelper {
 
@@ -33,20 +35,86 @@ public class TeleportationHelper {
 	private static double yawAngle(Vector3 v) {
 		return Math.toDegrees(Math.atan2(-v.x, v.z));
 	}
-
-	public static Entity sendEntityToWorld(Entity entity, Trans3 src, Trans3 dst, int dimension) {
-		Vector3 lPos = src.ip(entity.posX, entity.posY, entity.posZ);
+	/**
+	 * Made for stargates 
+	 * when you enter you need to come out differently 
+	 * @param entity
+	 * @param src
+	 * @param dst
+	 * @param dimension
+	 * @return
+	 */
+	public static Entity sendEntityToWorldStargate(Entity entity, Trans3 src, Trans3 dst, int dimension) {
+		Vector3 lPos = src.ip(entity.posX, entity.posY, entity.posZ); //Position relative to base block
 		Vector3 lVel = src.iv(entity.motionX, entity.motionY, entity.motionZ);
-		Vector3 lFac = src.iv(yawVector(entity));
-		Vector3 newPosition = dst.p(-lPos.x, lPos.y, -lPos.z);
-		Vector3 newVelocity = dst.v(-lVel.x, lVel.y, -lVel.z);
-		Vector3 gFac = dst.v(lFac.mul(-1));
+		Vector3 lFac = src.v(yawVector(entity)); // rotation relative to base block
+		LCLog.debug("lieven121 here is pos : "+lPos);
+		
+		//tmp or not if no better system found
+		Vector3 gFac = dst.v(lFac.mul(1));
+		Vector3 newPosition = dst.offset.add(lPos);
+		if ((Math.abs(dst.rotation.m[0][0]))!=1) {
+			gFac = dst.v(lFac.mul(-1));
+			Vector3 lPosInv = new Vector3(lPos.z, lPos.y, lPos.x);
+			newPosition = dst.offset.add(lPosInv);
+			LCLog.debug("inv");
+		}
+		
+	//	Vector3 newPosition = dst.p(lPos.x, lPos.y, lPos.z);
+		//Vector3 newPosition = dst.p(lPos.x, lPos.y, lPos.z);
+		//Vector3 newPosition = dst.offset;
+		//Vector3 newPosition = gPos ;//dst.p(gPos.x, gPos.y, gPos.z);
+		Vector3 newVelocity = dst.v(lVel.x, lVel.y, lVel.z);
+	/*	if (((Math.abs(src.rotation.m[0][0]))==1 && (Math.abs(dst.rotation.m[0][0]))!=1) || ((Math.abs(src.rotation.m[0][0]))!=1 && (Math.abs(dst.rotation.m[0][0]))==1)) {
+			newPosition = dst.p(lPos.z, lPos.y, lPos.x );
+		}*/
+		
+		LCLog.debug("lieven121 here is src pos : "+src);
+		LCLog.debug("lieven121 here is dst pos : "+dst);
+	
+		//LCLog.debug("lieven121 here is fac : "+lFac);
+		LCLog.debug("lieven121 here is vel : "+lVel);
+		
+		LCLog.debug("lieven121 here is go to : "+newPosition);
+		
+		
 		Facing3 newFacing = new Facing3(yawAngle(gFac), entity.rotationPitch);
 		Entity newEntity = sendEntityToWorld(entity, dimension, newPosition, newFacing);
-		setVelocity(newEntity, newVelocity);
+		setVelocity(newEntity, newVelocity); 
+		newEntity.setRotationYawHead((float) newFacing.yaw);
 		return newEntity;
 	}
-
+	
+	/**
+	 * Made for transport ring/other teleportation 
+	 * @param entity
+	 * @param src
+	 * @param dst
+	 * @param dimension
+	 * @return
+	 */
+	public static Entity sendEntityToWorld(Entity entity, Trans3 src, Trans3 dst, int dimension) {
+		Vector3 lPos = src.ip(entity.posX, entity.posY, entity.posZ); //Position relative to base block
+		Vector3 lVel = src.iv(entity.motionX, entity.motionY, entity.motionZ);
+		Vector3 lFac = src.v(yawVector(entity)); // rotation relative to base block
+		LCLog.debug("lieven121 here is pos : "+lPos);
+		Vector3 gFac = dst.v(lFac.mul(1));
+		Vector3 newPosition = dst.offset.add(lPos);
+		if ((Math.abs(dst.rotation.m[0][0]))!=1) {
+			gFac = dst.v(lFac.mul(-1));
+		}
+		Vector3 newVelocity = dst.v(lVel.x, lVel.y, lVel.z);
+		//LCLog.debug("lieven121 here is fac : "+lFac);
+		LCLog.debug("lieven121 here is vel : "+lVel);
+		
+		LCLog.debug("lieven121 here is go to : "+newPosition);
+		Facing3 newFacing = new Facing3(yawAngle(gFac), entity.rotationPitch);
+		Entity newEntity = sendEntityToWorld(entity, dimension, newPosition, newFacing);
+		setVelocity(newEntity, newVelocity); 
+		newEntity.setRotationYawHead((float) newFacing.yaw);
+		return newEntity;
+	}
+	
 	private static Entity sendEntityToWorld(Entity entity, int newDimension, Vector3 newPos, Facing3 newLook) {
 		MinecraftServer server = MinecraftServer.getServer();
 		Entity currentEntity = entity;
@@ -112,6 +180,7 @@ public class TeleportationHelper {
 			if (currentEntity instanceof EntityPlayerMP) {
 				EntityPlayerMP mpEnt = (EntityPlayerMP) currentEntity;
 				mpEnt.rotationYaw = (float) newLook.yaw;
+				mpEnt.rotationPitch = (float) newLook.pitch;
 				mpEnt.setPositionAndUpdate(newPos.x, newPos.y, newPos.z);
 				mpEnt.worldObj.updateEntityWithOptionalForce(entity, false);
 			}
@@ -120,8 +189,9 @@ public class TeleportationHelper {
 	}
 
 	private static void setVelocity(Entity entity, Vector3 v) {
-		entity.motionX = v.x;
+		entity.setVelocity(v.x, v.y, v.z);
+		/*entity.motionX = v.x;
 		entity.motionY = v.y;
-		entity.motionZ = v.z;
+		entity.motionZ = v.z;*/
 	}
 }
