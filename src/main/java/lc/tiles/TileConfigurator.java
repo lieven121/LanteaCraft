@@ -1,10 +1,15 @@
 package lc.tiles;
 
+import net.minecraft.client.particle.EntityFlameFX;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import cpw.mods.fml.relauncher.Side;
+import lc.LCRuntime;
 import lc.api.rendering.ITileRenderInfo;
+import lc.client.render.gfx.particle.GFXDust;
+import lc.client.render.gfx.particle.GFXFlame;
+import lc.client.render.gfx.particle.GFXFluidDroplet;
 import lc.common.base.LCTile;
 import lc.common.configuration.xml.ComponentConfig;
 import lc.common.network.LCNetworkException;
@@ -37,7 +42,6 @@ public class TileConfigurator extends LCTile {
 	@Override
 	public void thinkClient() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override

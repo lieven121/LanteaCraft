@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import lc.client.opengl.LCEntityFX;
+import lc.common.LCLog;
 import lc.common.resource.ResourceAccess;
 
 public class GFXFlame extends LCEntityFX {
@@ -28,7 +29,6 @@ public class GFXFlame extends LCEntityFX {
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, particleAlpha);
 		float u0 = 0.0f, u1 = 0.5f;
 		float v0 = 0.0f, v1 = 1.0f;
-
 		float s = particleScale;
 		float ux = (float) (prevPosX + (posX - prevPosX) * frame - EntityFX.interpPosX);
 		float uy = (float) (prevPosY + (posY - prevPosY) * frame - EntityFX.interpPosY);

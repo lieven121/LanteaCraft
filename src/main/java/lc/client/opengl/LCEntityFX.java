@@ -1,5 +1,6 @@
 package lc.client.opengl;
 
+import lc.common.LCLog;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
@@ -25,7 +26,7 @@ public abstract class LCEntityFX extends EntityFX {
 	 *            The z-coordinate of the entity
 	 */
 	protected LCEntityFX(World world, double x, double y, double z) {
-		super(world, x, y, z, 0.0d, 0.0d, 0.0d);
+		super(world, x, y, z);
 	}
 
 	/**
@@ -47,7 +48,11 @@ public abstract class LCEntityFX extends EntityFX {
 	 *            The movement z-speed of the entity
 	 */
 	protected LCEntityFX(World world, double x, double y, double z, double mx, double my, double mz) {
+		//super(world, mz, mz, mz, mz, mz, mz);
 		super(world, x, y, z, mx, my, mz);
+		this.prevPosX = this.posX;
+		this.prevPosY = this.posY;
+		this.prevPosZ = this.posZ;
 		this.motionX = mx;
 		this.motionY = my;
 		this.motionZ = mz;
@@ -66,15 +71,14 @@ public abstract class LCEntityFX extends EntityFX {
 		this.prevPosX = this.posX;
 		this.prevPosY = this.posY;
 		this.prevPosZ = this.posZ;
-
 		if (this.particleAge++ >= this.particleMaxAge) {
 			this.setDead();
 		}
-
+		
 		this.motionY -= 0.04D * (double) this.particleGravity;
 		this.posX += this.motionX;
 		this.posY += this.motionY;
-		this.posZ += this.motionZ;
+	    this.posZ += this.motionZ;
 
 		this.motionX *= 0.9800000190734863D;
 		this.motionY *= 0.9800000190734863D;
